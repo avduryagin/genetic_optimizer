@@ -1,0 +1,11 @@
+/app/calclib/tests.py
+/venv/
+/.venv/
+/build/
+/dist/
+/packages/
+/logs/
+/.vs/
+/.idea/
+/app/__pycache__
+/app/calclib/__pycache__

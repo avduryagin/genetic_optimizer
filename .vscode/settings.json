@@ -1,0 +1,7 @@
+{
+    "files.exclude": {
+        "**/.idea": true,
+        "**/.venv": true,
+        "**/app/__pycache__": true
+    },
+}
