@@ -2,7 +2,7 @@ import os
 import sys
 from flask import Flask
 
-app = Flask(__name__)
+app_flask = Flask(__name__)
 
 """ Get absolute path to resource, works for dev and for PyInstaller """
 if getattr(sys, 'frozen', False):

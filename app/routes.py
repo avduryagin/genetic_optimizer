@@ -1,10 +1,10 @@
-from app import app
+from app import app_flask
 
-@app.route('/')
-@app.route('/index')
+@app_flask.route('/')
+@app_flask.route('/index')
 def index():
     return "OIS.PyServices"
 
-@app.route('/health/live')
+@app_flask.route('/health/live')
 def health():
     return 'live'

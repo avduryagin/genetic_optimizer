@@ -1,4 +1,4 @@
-from app import app
+from app import app_flask
 from waitress import serve
 import logging
 import os
@@ -13,7 +13,7 @@ except:
 
 def run():
     logger.info("App start")
-    serve(app, host="0.0.0.0", port=port, threads=4)  # WAITRESS!
+    serve(app_flask, host="0.0.0.0", port=port, threads=4)  # WAITRESS!
 
 if __name__ == '__main__':
     run()

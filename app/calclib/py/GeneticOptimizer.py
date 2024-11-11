@@ -1,7 +1,6 @@
-import py_optimizer as pylib
-import cpp_optimizer as clib
 import numpy as np
-
+import app.calclib.py.py_optimizer as pylib
+import app.calclib.py.cpp_optimizer as clib
 
 class Optimizer:
     def __init__(self,npopul_=10,bound_=0.,data_=np.array([]).reshape(-1,2),

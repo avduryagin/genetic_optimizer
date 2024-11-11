@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
-import GeneticOptimizer as op
 from collections.abc import Iterable
+import app.calclib.py.GeneticOptimizer as op
+
 
 
 class DataWrapper:
@@ -245,8 +246,8 @@ class GeneralizedOptimizer:
                 self.data.set_mean(cell,type_,-val)
                 self.data.data.at[i,'mask']=True
 
-    def optimize(self,mode="even",alpha=0.7):
-        self.alpha=alpha
+    def optimize(self,mode="even"):
+        #self.alpha=alpha
         if mode=="odd":
             data=self.optimize_odd()
         else:
