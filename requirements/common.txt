@@ -2,18 +2,22 @@
 # Usage: pip install -r requirements.txt
 
 #math
-numpy==1.24.3
-pandas==2.0.3
-six==1.15.0
+numpy==2.0.2
+pandas==2.2.3
+six==1.16.0
 
 
 # Flask Framework
-Flask==2.1.2
+Flask==3.0.3
 
 # Flask Packages
-flask-restful==0.3.9
-werkzeug==2.2.3
+flask-restful==0.3.10
+werkzeug==3.1.2
 
 #prd
-waitress==1.4.4
+waitress==3.0.1
+#cryptography
+pyjwt==2.9.0
+cryptography==43.0.3
+#c++
 pybind11

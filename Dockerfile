@@ -1,15 +1,17 @@
-FROM all-docker.asuproject.ru/python:3.8.13-buster
+FROM all-docker.asuproject.ru/base/ois-base-redos-python312:240927.1500.1-release
+RUN dnf -y update
+RUN dnf groupinstall -y "Development Tools"
 WORKDIR /app
 COPY requirements/common.txt /root/app/
-#RUN python3.8 -m venv .venv  pip install pybind11
-RUN python3.8 -m venv .venv && \
+
+RUN python3.12 -m venv .venv && \
     pip install -r /root/app/common.txt
+RUN python3.12 -m pip  install --upgrade setuptools[core]
 COPY app/calclib/cpp /root/app/cpp
 
-RUN python3.8 /root/app/cpp/setup.py build_ext --build-lib=/usr/local/lib/python3.8/lib-dynload
+RUN python3.12 /root/app/cpp/setup.py build_ext --build-lib=/usr/local/lib/python3.12/lib-dynload
 COPY . ./
-#RUN python3.8 /app/calclib/cpp/setup.py build_ext --build-lib=/app
-#RUN --mount type=bind,source="$(pwd)"/app/calclib/cpp,target=/app/cpp
+
 EXPOSE 5000
 CMD python server.py
 
