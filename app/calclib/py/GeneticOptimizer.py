@@ -75,6 +75,60 @@ class Optimizer:
 
 
 
+class GeneralizedOptimizer:
+    def __init__(self,npopul_=10,xarray_=np.array([],dtype=np.float32).reshape(-1),yarray_=np.array([],dtype=np.float32).reshape(-1),
+                 bounds_=np.array([],dtype=np.float32).reshape(-1),
+                 threshold_=0.7,inh_threshold_=0.1,epsilon_=1e-7,mutate_cell_=3,tolerance_=0.7,
+                 cast_number_=3,allow_count_=5,random_mutate_=True,njobs_=1,penalty_degree=2.):
+        assert ((type(npopul_)==int)&(npopul_>0)),"npopul_ must be a posivive integer "
+        assert (type(mutate_cell_) == int)&(mutate_cell_>=0), "mutate_cell_ must be a not negative integer "
+        assert (type(allow_count_) == int) & (allow_count_ > 0), "allow_count_ must be a posivive integer "
+        assert (type(cast_number_) == int) & (cast_number_ > 0), "allow_count_ must be a posivive integer "
+        assert (type(threshold_) == float) & (threshold_ > 0.) & (threshold_ <=1.), "threshold_ must be a posivive float in (0,1] "
+        assert (type(inh_threshold_) == float) & (inh_threshold_>= 0.) & (inh_threshold_ <= 1.), "inheritance hreshold_ must be a posivive float in [0,1] "
+        assert (type(tolerance_) == float) & (tolerance_ > 0.) & (tolerance_ <= 1.), "tolerance_ must be a posivive float in (0,1] "
+        assert (type(epsilon_) == float) & (tolerance_ > 0.), "epsilon_ must be a posivive float "
+        assert (type(random_mutate_) == bool), "random_mutate_ must be a boolean "
+        assert (type(njobs_) == int) & (njobs_> 0), "njobs_ must be a posivive integer "
+        assert (len(yarray_.shape)==1),"Expect a one-dimensional array yarray_"
+        assert (len(xarray_.shape) == 1), "Expect a one-dimensional array xarray_"
+        assert (len(bounds_.shape) == 1), "Expect a one-dimensional array bounds_"
+        assert (xarray_.shape[0]==yarray_.shape[0]*bounds_.shape[0]),"xarray_ length must be equal y_array.shape[0]*bounds_.shape[0]"
+        assert(xarray_.dtype==np.float32),"xarray_ dtype must be np.float32"
+        assert (yarray_.dtype == np.float32), "yarray_ dtype must be np.float32"
+        assert (bounds_.dtype == np.float32), "bounds_ dtype must be np.float32"
+        assert (type(penalty_degree)==float),"penalty_degree must be a float "
+        self.xarray=xarray_
+        self.yarray=yarray_
+        self.bounds=bounds_
+        self.npopul=npopul_
+        self.mutate_cell=mutate_cell_
+        self.allow_count=allow_count_
+        self.cast_number=cast_number_
+        self.tolerance=tolerance_
+        self.epsilon=epsilon_
+        self.threshold=threshold_
+        self.inh_threshold=inh_threshold_
+        self.niter=0
+        self.random_mutate=random_mutate_
+        self.njobs=njobs_
+        self.optimizer=clib.GeneralizedOptimizer()
+        self.code=np.empty(shape=self.yarray.shape[0],dtype=np.int32)
+        self.penalty_degree=penalty_degree
+        self.val=0
+        self.rest=0
+        self.metric=0
+    def optimize(self):
+
+        self.optimizer.optimize(self.xarray,self.yarray,self.bounds,self.code,self.npopul,
+                                self.threshold,self.inh_threshold,self.epsilon,self.tolerance,
+                                self.mutate_cell,self.cast_number,self.allow_count,self.random_mutate,self.penalty_degree)
+
+        self.val=self.optimizer.value
+        self.rest=self.optimizer.rest
+        self.niter = self.optimizer.niter
+        self.metric=self.optimizer.metric
+
 
 
 

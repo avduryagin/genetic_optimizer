@@ -155,17 +155,14 @@ bool Individ::at(size_t i ) const
 }
 
 
-
-Population::Population(size_t npopul_, float bound_, float* x_, float* y_, size_t length_,  float threshold_ = 0.7f, float inh_threshold_ = 0.1f, float epsilon_ = 1e-3f, float tolerance_ = 0.7f, size_t mutate_cell_ = 1, size_t cast_number_ = 3,bool random_mutate_=false)
+Population::Population(size_t npopul_, float bound_, float* x_, float* y_, size_t length_, float threshold_ = 0.7f, float inh_threshold_ = 0.1f, float epsilon_ = 1e-3f, float tolerance_ = 0.7f, size_t mutate_cell_ = 1, size_t cast_number_ = 3, bool random_mutate_ = false, bool apply_fit_=true)
 {
-	//std::random_device rd;
-	this->random_device=new std::random_device();
-	this->random_ = uniform_(0.f,1.f);
+	
+	this->random_device = new std::random_device();
+	this->random_ = uniform_(0.f, 1.f);
 	size_t seed = (*this->random_device)();
 	this->random_generator_.seed(seed);
-
-
-	this->npopul = npopul_;	
+	this->npopul = npopul_;
 	this->bound = bound_;
 	this->x = x_;
 	this->y = y_;
@@ -178,13 +175,9 @@ Population::Population(size_t npopul_, float bound_, float* x_, float* y_, size_
 	this->cast_number = cast_number_;
 	this->random_mutate = random_mutate_;
 	this->set_mutator(this->mutate_cell, this->random_mutate);
+	if (apply_fit_){ this->fit(); }
 
 	
-	//this->path= "C:\\Users\\avduryagin\\source\\repos\\genetic_optimizer\\log_file.txt";
-	//std::ofstream out;	
-	//out.open(this->path);
-	//this->out = &out;
-	this->fit();
 
 };
 
@@ -250,7 +243,7 @@ void Population::add_individ(size_t index,individ_ptr individ_,dictionary_* popu
 	(*population)[index] = individ_;
 };
 
-individ_ptr Population::cross(individ_ptr mparent, individ_ptr fparent) 
+std::shared_ptr<Individ> Population::cross(individ_ptr mparent, individ_ptr fparent)
 {
 	//Individ* child =new Individ(this->length, this->bound, *this->random_device);
 	individ_ptr pointer = std::make_shared<Individ>(this->length, this->bound, *this->random_device);
@@ -532,7 +525,7 @@ const size_t RandomMutator::randint()
 };
 
 PopulationParallel::PopulationParallel(size_t npopul_, float bound_, float* x_, float* y_, size_t length_, float threshold_ = 0.7f, float inh_threshold_ = 0.1f, float epsilon_ = 1e-3f, float tolerance_ = 0.7f, size_t mutate_cell_ = 1, size_t cast_number_ = 3, bool random_mutate_ = false,size_t njobs_=1)
-	:Population{npopul_,bound_,  x_, y_, length_, threshold_, inh_threshold_,epsilon_ ,tolerance_ , mutate_cell_ ,  cast_number_ ,  random_mutate_ }
+	:Population{npopul_,bound_,  x_, y_, length_, threshold_, inh_threshold_,epsilon_ ,tolerance_ , mutate_cell_ ,  cast_number_ ,  random_mutate_,true }
 {
 	std::thread th;	
 	this->njobs = std::min((unsigned int)njobs_, th.hardware_concurrency()-1);

@@ -61,7 +61,7 @@ using boolean_ = std::unique_ptr<bool[]>;
 
 class Individ
 {
-	
+protected:
 	float val_ = 0;
 	float rest_ = 0;
 	float bound = 0;
@@ -78,23 +78,25 @@ public:
 	~Individ();
 	void fit(float*,size_t, float*,size_t);
 	const float value(float*, size_t, float*, size_t);
-	const float get_rest() const;
-	const float get_val() const;	
+	virtual const float get_rest() const;
+	virtual const float get_val() const;
 	void pint_to_log(std::string& ,size_t index);
-	void mutate(size_t);
-	const size_t randint();
+	virtual void mutate(size_t);
+	virtual const size_t randint();
 	void shuffle(std::vector<size_t> &);	
-	bool at(size_t i) const;
-	void inherit(const Individ*, const Individ*);
+	virtual bool at(size_t i) const;
+	virtual void inherit(const Individ*, const Individ*);
 	Individ* copy(std::random_device&);
 };
 
-using individ_ptr = std::shared_ptr<Individ>;
-using individ_ptru = std::unique_ptr<Individ>;
+
 
 class Population
 {
+
 protected:
+	using individ_ptr = std::shared_ptr<Individ>;
+	using individ_ptru = std::unique_ptr<Individ>;
 	using dictionary_ = std::unordered_map<size_t, individ_ptr>;
 	using dictionary_iterator = std::unordered_map<size_t, individ_ptr>::iterator;
 	std::random_device* random_device=nullptr;
@@ -129,7 +131,7 @@ protected:
 	std::string log;
 	std::string path; 
 	std::ofstream* out;
-	void fit();
+	virtual void fit();
 	void set_limits();
 	void add_individ(size_t,individ_ptr,dictionary_*);	
 	individ_ptr cross(individ_ptr, individ_ptr);
@@ -149,8 +151,8 @@ protected:
 	
 
 public:
-	individ_ptr optimal_individ=nullptr;
-	Population(size_t, float, float*, float*, size_t, float, float,  float,float, size_t, size_t,bool);
+	individ_ptr optimal_individ=nullptr;	
+	Population(size_t, float, float*, float*, size_t, float, float,  float,float, size_t, size_t,bool,bool);
 	~Population();
 	const size_t niter_() const;
 	virtual void optimize(const size_t);

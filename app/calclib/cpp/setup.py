@@ -4,7 +4,7 @@ import os
 import sys
 path=os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0,path)
-sources_=[os.path.join(path,f) for f in ['bind.cpp','main.cpp','pymodule.cpp']]
+sources_=[os.path.join(path,f) for f in ['bind.cpp','main.cpp','pymodule.cpp','generalized_optimizer.cpp']]
 cpp_args = ['-std=c++14']
 
 sfc_module = Extension(
@@ -18,7 +18,7 @@ sfc_module = Extension(
 
 setup(
     name='genetic_lib',
-    version='1.0',
+    version='2.0',
     author='Duryagin',
     author_email='duryagin.mail@gmail.com',
     description='genetic optimizer for python',

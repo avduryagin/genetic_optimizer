@@ -1,14 +1,15 @@
-## Установить [python-3.8.7]
-(https://www.python.org/downloads/release/python-387/)
-
+## В образ ois-base-redos-python312:240927.1500.1-release
+## Установить компилятор g++ 
+* groupinstall -y "Development Tools"
 ## Создание и активация venv
-1. py -3.8 -m venv .venv
-2. Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-3. .\\.venv\Scripts\activate
-
- ## Установить пакеты
- * pip install -r requirements\dev.txt 
+* python3.12 -m venv .venv
+## Установить пакеты для расчетных библиотек
+ * pip install -r /root/app/common.txt
+## Установить пакеты сборки библиотек C++
+* python3.12 -m pip  install --upgrade setuptools[core]
+## Скомпилировать исходный код С++
+* COPY app/calclib/cpp /root/app/cpp
+* python3.12 /root/app/cpp/setup.py build_ext --build-lib=/usr/local/lib/python3.12/lib-dynload
  
  ## Запуск waitress сервера 
 * python server.py
-* Запускается по F5 в VSCode

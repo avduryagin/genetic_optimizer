@@ -28,8 +28,7 @@ void optimizer::init(f_array* data_ptr_, int_array& indices, unsigned int npopul
 	while (i < this->length)
 	{
 		this->x[i] = data_ptr->at(i, 0);
-		this->y[i] = data_ptr->at(i, 1);
-		//log.append(std::to_string(this->x[i]) + " " + std::to_string(this->y[i]) + "\n");
+		this->y[i] = data_ptr->at(i, 1);		
 		++i;
 	}
 
@@ -52,11 +51,11 @@ void optimizer::optimize(f_array* data_ptr_, int_array& indices, unsigned int np
 	log.append("epsilon: " + std::to_string(this->epsilon) + "\n");
 	log.append("tolerance: " + std::to_string(this->tolerance) + "\n");
 	log.append("njobs: " + std::to_string(this->njobs) + "\n");
+	
 
-
-	Population optimizer_ = Population(this->npopul, this->bound, this->x, this->y, this->length, this->threshold, this->inh_threshold, this->epsilon, this->tolerance, this->mutate_cell, this->cast_number, this->mutate_random);
+	Population optimizer_ = Population(this->npopul, this->bound, this->x, this->y, this->length, this->threshold, this->inh_threshold, this->epsilon, this->tolerance, this->mutate_cell, this->cast_number, this->mutate_random,true);
 	optimizer_.optimize(this->allow_count);
-	individ_ptr pointer = optimizer_.optimal_individ;
+	std::shared_ptr<Individ> pointer = optimizer_.optimal_individ;
 	Individ* individ = pointer.get();
 	this->val = individ->get_val();
 	this->rest = individ->get_rest();
@@ -69,7 +68,7 @@ void optimizer::optimize(f_array* data_ptr_, int_array& indices, unsigned int np
 	}
 	this->optimizer_ptr = &optimizer_;
 	this->niter = optimizer_.niter_();
-	out << log;
+	//out << log;
 
 
 	
@@ -100,42 +99,25 @@ void multijobs_optimizer::optimize(f_array* data_ptr_, int_array& indices, unsig
 	log.append("njobs: " + std::to_string(this->njobs) + "\n");
 	out << log;
 	out.close();
-
+	
 	PopulationParallel optimizer_ = PopulationParallel(this->npopul, this->bound, this->x, this->y, this->length, this->threshold, this->inh_threshold, this->epsilon, this->tolerance, this->mutate_cell, this->cast_number, this->mutate_random, this->njobs);
 	try {
-		//path = "C:\\Users\\avduryagin\\source\\repos\\genetic_optimizer\\log_file_1.txt";
-		//out.open(path);
+
 		optimizer_.optimize(this->allow_count);
-		//log.append("optimizer passed\n");
-		//out << log;
-		//out.close();
-		//path = "C:\\Users\\avduryagin\\source\\repos\\genetic_optimizer\\log_file_2.txt";
-		//out.open(path);
-		;
-		individ_ptr  pointer = optimizer_.optimal_individ;
+		std::shared_ptr<Individ>  pointer = optimizer_.optimal_individ;
 		if (pointer == nullptr) { throw std::invalid_argument("Empty answer"); log.append("thrown an exception "); out << log; out.close(); }
 		Individ* individ = pointer.get();
-		//log.append("individ passed\n");
-		//out << log;
-		//out.close();
 
-		this->val = individ->get_val();
-		//log.append("val: " + std::to_string(this->val) + "\n");
-		this->rest = individ->get_rest();
-		//log.append("rest: " + std::to_string(this->rest) + "\n");
-		this->niter = optimizer_.niter_();
-		//log.append("niter: " + std::to_string(this->niter) + "\n");
+		this->val = individ->get_val();		
+		this->rest = individ->get_rest();		
+		this->niter = optimizer_.niter_();		
 		size_t i = 0;
 		while (i < this->length)
 		{
-			indices.mutable_at(i) = int(individ->at(i));
-			//log.append(std::to_string(indices.at(i)) + ",");
+			indices.mutable_at(i) = int(individ->at(i));			
 			++i;
 		}
-		//log.append("\n code passed: " + std::to_string(this->niter) + "\n");	
 
-		//out << log;
-		//out.close();
 	}
 	catch (...)
 	{
@@ -144,3 +126,88 @@ void multijobs_optimizer::optimize(f_array* data_ptr_, int_array& indices, unsig
 		out.close();
 	}
 };
+generalized_optimizer::generalized_optimizer() {}
+generalized_optimizer::~generalized_optimizer() {}
+void generalized_optimizer::optimize(f_array* x, f_array* y, f_array* b, int_array& code, unsigned int npopul_, 
+	float threshold_ = 0.7f, float inh_threshold_ = 0.1f, float epsilon_ = 1e-3f, float tolerance_ = 0.7f, 
+	unsigned int mutate_cell_ = 1, unsigned int cast_number_ = 3, unsigned int allow_count_ = 5, bool random_mutate_ = false, float penalty_degree_=2)
+{
+	std::string log;
+	std::string path;
+	std::ofstream out;
+	//path = "//app//log_file_.txt";
+	path = "C:\\Users\\avduryagin\\PycharmProjects\\GeneticOptimizer\\data\\log_file_.txt";
+	out.open(path);
+
+	size_t nrow = 0,ncell=0,i=0;	
+	this->allow_count = size_t(allow_count_);
+	this->npopul = size_t(npopul_);
+	this->mutate_cell = size_t(mutate_cell_);	
+	this->threshold = threshold_;
+	this->inh_threshold = inh_threshold_;
+	this->epsilon = epsilon_;
+	this->tolerance = tolerance_;
+	this->random_mutate = random_mutate_;
+	this->penalty_degree = penalty_degree_;
+	this->xarray = x;
+	this->yarray = y;
+	this->bounds = b;
+	this->penalty_degree = penalty_degree_;
+	nrow = this->yarray->shape(0);
+	ncell= this->bounds->shape(0);
+	this->xarray_ = std::shared_ptr<float []>(new float[ncell * nrow]);
+	this->yarray_ = std::shared_ptr<float[]>(new float[nrow]);
+	this->bounds_= std::shared_ptr<float[]>(new float[ncell]);
+	//this->xarray_ = std::make_shared<float[]>(ncell*nrow);
+	//this->yarray_ = std::make_shared<float[]>(nrow);
+	//this->bounds_ = std::make_shared<float[]>(ncell);
+
+	try {
+		i = 0;
+		while (i < ncell)
+		{
+			this->bounds_[i] = this->bounds->at(i);
+			++i;
+		}
+		i = 0;
+		while (i < nrow)
+		{
+			this->yarray_[i] = this->yarray->at(i);
+			++i;
+		}
+		i = 0;
+		while (i < nrow * ncell)
+		{
+			this->xarray_[i] = this->xarray->at(i);
+			++i;
+		}
+
+		GeneralizedPopulation optimizer = GeneralizedPopulation(this->npopul, this->bounds_, ncell, this->yarray_, nrow, this->xarray_,
+			this->threshold, this->inh_threshold, this->epsilon, this->tolerance, this->mutate_cell,
+			this->cast_number, this->random_mutate, this->penalty_degree);
+		optimizer.optimize(this->allow_count);
+		this->niter = optimizer.niter_();
+		GeneralizedIndivid* solution = optimizer.optimal_individ.get();
+		if (solution == nullptr) { throw std::invalid_argument("Empty answer"); log.append("thrown an exception "); out << log; out.close(); }
+		i = 0;
+		while(i<nrow)
+		{
+			code.mutable_at(i) = solution->get_index(i);
+			++i;
+		
+		}
+		this->metric_ = solution->metric();
+		this->val = solution->get_val();
+		this->rest= solution->get_rest();
+		
+
+
+	}
+	catch (...)
+	{
+		log.append("error");
+		out << log;
+		out.close();
+	}
+	
+}
