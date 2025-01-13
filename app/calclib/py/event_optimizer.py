@@ -2,17 +2,14 @@ import numpy as np
 import pandas as pd
 from collections.abc import Iterable
 import app.calclib.py.GeneticOptimizer as op
+from app.logging_format import log_ as formatted_log
 
 
 
 class DataWrapper:
 
-    def __init__(self,json_data,data_field="data",target_field="target"):
-        assert type(json_data)==dict,"Expect serialized json data as dict."
-        self.json_data=json_data
-        self.json_data['log']=""
-        self.data_field=data_field
-        self.target_field=target_field
+    def __init__(self,json_data):
+        self.log=[]
         self.data=None
         self.means=None
         self.grouped=None
@@ -23,10 +20,15 @@ class DataWrapper:
         self.dtypes={'group': np.int32, 'cell': np.int32,
                      'assigned': np.int32, 'order': np.float32,
                       'cost': np.float32, 'type': np.int32}
+        self.data_field=self.dtypes.keys()
+        self.target_field='target'
+        self.json_data=json_data
 
     def fit(self):
         try:
-            self.data=pd.DataFrame.from_dict(self.json_data[self.data_field]).astype(self.dtypes)
+            assert type(self.json_data) == dict, "Expect serialized json data as dict. Got {0} dtype".format(type(self.json_data))
+            data_={k:self.json_data[k] for k in self.data_field }
+            self.data=pd.DataFrame.from_dict(data_).astype(self.dtypes)
             self.data.index=self.data.index.astype(np.int32)
             self.index=self.data.index
             self.data.loc[:, 'mask'] = False
@@ -37,21 +39,18 @@ class DataWrapper:
             self.assertion_()
             self.grouped=self.data.groupby(["group","type"]).groups
             self.cells=np.unique(self.means.columns)
-            if self.cells.shape[0]!=len(self.means.columns):
-                self.json_data['log']+="Invalid json. Expect only unique values of target\n"
-                raise AssertionError
+            assert self.cells.shape[0]==len(self.means.columns),"Invalid json. Expect only unique values of target"
             self.types_ = np.unique(self.means.index)
-            if self.types_.shape[0] != self.means.index.shape[0]:
-                self.json_data['log']+="Invalid json. Expect only unique values of types\n"
-                raise AssertionError
+            assert self.types_.shape[0] == self.means.index.shape[0],"Invalid json. Expect only unique values of types"
             self.groups=np.unique(self.data.loc[:,"group"])
 
-
-        except KeyError:
-            self.json_data['log']+="Invalid json. Couldn't find one of fields: data, target\n"
-            raise AssertionError
+        except KeyError as err:
+            item = formatted_log("input json error", None, str(err))
+            self.log.append(item.get())
+            raise KeyError("Invalid json. Couldn't find one of fields: main, target. Got fields {0}".format(self.json_data.keys()))
         except AssertionError as err:
-            self.json_data['log']+=str(err)+"\n"
+            item = formatted_log("input json error", None, str(err))
+            self.log.append(item.get())
 
 
 
@@ -116,8 +115,8 @@ class DataWrapper:
 
 class DataWrapperExp(DataWrapper):
 
-    def __init__(self,json_data,data_field="data",target_field="target"):
-        super().__init__(json_data,data_field=data_field,target_field=target_field)
+    def __init__(self,json_data):
+        super().__init__(json_data)
         self.types_index=None
         self.other_types=None
         self.types_mask=None
@@ -155,25 +154,31 @@ class Optimizer:
     def __init__(self,data=pd.DataFrame([],columns=['group', 'cell', 'assigned', 'order', 'cost','mask']),
                  means=pd.DataFrame([],columns=[0,1,2,3,4]),
                  groupby=["cell","group"]):
-        dtype=data["group"].dtype
-        assert dtype==np.int64 or dtype==np.int32 or dtype==np.int16 or dtype==int,"Datatype error! Expect group as integer"
-        dtype=data["type"].dtype
-        assert dtype==np.int64 or dtype==np.int32 or dtype==np.int16 or dtype==int,"Datatype error! Expect type as integer"
-        dtype = data["cell"].dtype
-        assert  dtype==np.int64 or dtype==np.int32 or dtype==np.int16 or dtype==int, "Datatype error! Expect cell as integer"
-        dtype = data["assigned"].dtype
-        assert dtype==np.int64 or dtype==np.int32 or dtype==np.int16 or dtype==int, "Datatype error! Expect assigned as integer"
-        dtype = data["order"].dtype
-        assert dtype == np.float64 or dtype== np.float32 or dtype == np.float16 or dtype == float, "Datatype error! Expect cost as float"
-        dtype = data["cost"].dtype
-        assert dtype == np.float64 or dtype== np.float32 or dtype == np.float16 or dtype == float, "Datatype error! Expect cost as float"
-        dtype = data["mask"].dtype
-        assert dtype== bool ,"Datatype error! Expect mask as boolean"
-        self.data=data
-        self.means=means
-        self.ncell=means.shape[0]
-        self.grouped=data.groupby(groupby)
-        self.data.loc[:,'mask']=False
+        self.log=[]
+        try:
+            dtype=data["group"].dtype
+            assert dtype==np.int64 or dtype==np.int32 or dtype==np.int16 or dtype==int,"Datatype error! Expect group as integer"
+            dtype=data["type"].dtype
+            assert dtype==np.int64 or dtype==np.int32 or dtype==np.int16 or dtype==int,"Datatype error! Expect type as integer"
+            dtype = data["cell"].dtype
+            assert  dtype==np.int64 or dtype==np.int32 or dtype==np.int16 or dtype==int, "Datatype error! Expect cell as integer"
+            dtype = data["assigned"].dtype
+            assert dtype==np.int64 or dtype==np.int32 or dtype==np.int16 or dtype==int, "Datatype error! Expect assigned as integer"
+            dtype = data["order"].dtype
+            assert dtype == np.float64 or dtype== np.float32 or dtype == np.float16 or dtype == float, "Datatype error! Expect cost as float"
+            dtype = data["cost"].dtype
+            assert dtype == np.float64 or dtype== np.float32 or dtype == np.float16 or dtype == float, "Datatype error! Expect cost as float"
+            dtype = data["mask"].dtype
+            assert dtype== bool ,"Datatype error! Expect mask as boolean"
+            self.data=data
+            self.means=means
+            self.ncell=means.shape[0]
+            self.grouped=data.groupby(groupby)
+            self.data.loc[:,'mask']=False
+        except AssertionError as err:
+            item = formatted_log("input data error", None, str(err))
+            self.log.append(item.get())
+
     def reduce(self):
         for i in self.data.index:
             cell=self.data.at[i,"assigned"]
@@ -223,19 +228,29 @@ class GeneralizedOptimizer:
     def __init__(self,json_data, npopul=100,epsilon = 1e-3,
                  threshold = 0.7,tolerance = 0.7,allow_count = 5,
                  mutate_cell = 1,mutate_random=True,cast_number = 1,njobs=1):
-        self.json_data=json_data
-        self.npopul=npopul
-        self.epsilon=epsilon
-        self.threshold=threshold
-        self.tolerance=tolerance
-        self.allow_count=allow_count
-        self.mutate_cell=mutate_cell
-        self.mutate_random=mutate_random
-        self.cast_number=cast_number
-        self.njobs=njobs
-        self.data=DataWrapperExp(self.json_data)
-        self.data.fit()
-        self.alpha=1.
+        try:
+            self.json_data=json_data
+            self.npopul=npopul
+            self.epsilon=epsilon
+            self.threshold=threshold
+            self.tolerance=tolerance
+            self.allow_count=allow_count
+            self.mutate_cell=mutate_cell
+            self.mutate_random=mutate_random
+            self.cast_number=cast_number
+            self.njobs=njobs
+            self.alpha=1.
+            self.log=[]
+            self.data=None
+            self.data=DataWrapperExp(self.json_data)
+            self.data.fit()
+            self.log.extend(self.data.log)
+        except Exception as err:
+            item = formatted_log("Argument data error. DataFrame has type {0}. Error type {1}".format(type(self.data),err), None, str(err))
+            self.log.append(item.get())
+        finally:
+            assert len(self.log)==0, "Input data error"
+
 
     def reduce(self):
         for i in self.data.index:
@@ -283,6 +298,7 @@ class GeneralizedOptimizer:
 class OddOptimizer:
     def __init__(self,data=DataWrapper(dict())):
         self.data=data
+        self.log=[]
     def optimize(self,npopul=100,epsilon = 1e-3,threshold = 0.7,tolerance = 0.7,allow_count = 5,mutate_cell = 1,mutate_random=True,cast_number = 1,njobs=1):
 
         #leave_cell=False
@@ -388,6 +404,7 @@ class EvenOptimizer(OddOptimizer):
                                          tolerance_=tolerance, mutate_cell_=mutate_cell, mutate_random_=mutate_random,
                                          cast_number_=cast_number,
                                          allow_count_=allow_count, engine="cpp", njobs_=njobs)
+
                 optimizer.optimize()
                 solution = optimizer.solution
                 indices = index[solution.code]
@@ -428,27 +445,35 @@ class UniformOptimizer:
     def __init__(self,json_data,ncell=5,maxiter=100, npopul=100,epsilon = 1e-3,
                  threshold = 0.7,tolerance = 0.7,allow_count = 5,
                  mutate_cell = 1,mutate_random=True,cast_number = 1,njobs=1):
-        self.json_data=json_data
-        self.ncell=ncell
-        self.npopul=npopul
-        self.maxiter=maxiter
-        self.epsilon=epsilon
-        self.threshold=threshold
-        self.tolerance=tolerance
-        self.allow_count=allow_count
-        self.mutate_cell=mutate_cell
-        self.mutate_random=mutate_random
-        self.cast_number=cast_number
-        self.njobs=njobs
-        self.niter=0
-        self.log=[]
-        self.fit()
+        try:
+            self.json_data=json_data
+            self.ncell=ncell
+            self.npopul=npopul
+            self.maxiter=maxiter
+            self.epsilon=epsilon
+            self.threshold=threshold
+            self.tolerance=tolerance
+            self.allow_count=allow_count
+            self.mutate_cell=mutate_cell
+            self.mutate_random=mutate_random
+            self.cast_number=cast_number
+            self.njobs=njobs
+            self.niter=0
+            self.log=[]
+            self.fit()
+        except Exception as err:
+            item = formatted_log("Argument data error", None, str(err))
+            self.log.append(item.get())
+        finally:
+            assert len(self.data.log) == 0, "Input data error"
+
 
 
     def fit(self):
         target={k:{-1:0.} for k in np.arange(self.ncell,dtype=np.float32)}
         self.json_data["target"]=target
         self.data = DataWrapperExp(self.json_data)
+        self.log.extend(self.data.log)
         self.data.fit()
         mask=self.data.data.loc[:,"cell"]<self.ncell
         self.data.data=self.data.data.loc[mask]
@@ -468,7 +493,7 @@ class UniformOptimizer:
         while self.niter<self.maxiter:
             mask = self.data.data.loc[:, "assigned"] < 0
             missed_number = mask[mask].shape[0]
-            self.log.append([self.niter,missed_number])
+            #self.log.append([self.niter,missed_number])
             if missed_number == 0:
                 break
             agg_cell = self.data.data.loc[mask, ["cell", "cost"]].groupby("cell").sum()
@@ -478,10 +503,12 @@ class UniformOptimizer:
             val = self.__mean(0, x=cell_frame.loc[:, "cost"].values)
             self.data.means.loc[-1] += val
             self.data.data.loc[amask, "assigned"] = -1
-            json_data = {"data": self.data.data.to_dict(), "target": self.data.means.to_dict()}
+            #json_data = {"data": self.data.data.to_dict(), "target": self.data.means.to_dict()}
+            json_data=self.data.data.to_dict()
+            json_data['target']=self.data.means.to_dict()
             optimizer = GeneralizedOptimizer(json_data,npopul=self.npopul,epsilon=self.epsilon,threshold=self.threshold,tolerance=self.tolerance,
                                              allow_count=self.allow_count,mutate_cell=self.mutate_cell,mutate_random=self.mutate_random,cast_number=self.cast_number,njobs=self.njobs)
-            self.data.data = optimizer.optimize(alpha=1)
+            self.data.data = optimizer.optimize()
             self.niter+=1
         return self.data.data
 

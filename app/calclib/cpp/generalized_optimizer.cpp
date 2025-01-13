@@ -501,8 +501,7 @@ std::shared_ptr<GeneralizedIndivid> GeneralizedPopulation::cross(individ_ptr mpa
 	child->inherit(mparent.get(), fparent.get(),this->mutate_cell);
 	float val = child->value();
 	if (!child->valid()) 
-	{
-
+	{   val=0.;
 		return nullptr;
 	}
 	return pointer;
@@ -551,7 +550,7 @@ void GeneralizedPopulation::inherit(dictionary_* new_population, vector_* indice
 };
 const size_t GeneralizedPopulation::cast(const vector_& indices, individ_ptr generator_) const
 {
-	size_t length_ = indices.size();
+	//size_t length_ = indices.size();
 	GeneralizedIndivid* generator = generator_.get();
 	GeneralizedIndivid* sample = nullptr;
 

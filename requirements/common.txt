@@ -9,6 +9,7 @@ six==1.16.0
 
 # Flask Framework
 Flask==3.0.3
+requests==2.32.3
 
 # Flask Packages
 flask-restful==0.3.10
@@ -16,6 +17,7 @@ werkzeug==3.1.2
 
 #prd
 waitress==3.0.1
+gunicorn==22.0.0
 #cryptography
 pyjwt==2.9.0
 cryptography==43.0.3

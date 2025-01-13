@@ -254,7 +254,7 @@ std::shared_ptr<Individ> Population::cross(individ_ptr mparent, individ_ptr fpar
 	child->mutate(mutate);
 	float val = child->value(this->x, this->length, this->y, this->length);
 	if (std::abs(child->get_rest())>this->bound)	{
-		
+		val=0.;
 		return nullptr;
 	}
 	return pointer;
@@ -303,7 +303,7 @@ void Population::inherit(dictionary_* new_population, vector_* indices,size_t& n
 };
 const size_t Population::cast(const vector_&  indices, individ_ptr generator_) const
 {
-	size_t length_ = indices.size();
+	//size_t length_ = indices.size();
 	Individ* generator = generator_.get();
 	Individ* sample = nullptr;
 	
@@ -595,9 +595,9 @@ void PopulationParallel::get_new_population(dictionary_* new_population, size_t&
 void PopulationParallel::run(dictionary_ &population,vector_& indices, const size_t ninherited,size_t start=0)
 {
 
-	size_t optimal_index;
-	float maxval_ = -this->inf;
-	float minval_ = this->inf;
+	//size_t optimal_index;
+	//float maxval_ = -this->inf;
+	//float minval_ = this->inf;
 	individ_ptr generator = std::make_shared<Individ>(indices.size(),0.f, *this->random_device);
 	this->breed(&population, indices, generator,start, ninherited);
 	//Population::get_new_population(&population, optimal_index, minval_, maxval_,start);
@@ -633,7 +633,7 @@ void PopulationParallel::get_weight(std::unordered_map<size_t, dictionary_>& pop
 
 
 	vector_p::iterator miter = vector_.begin();
-	size_t i = 0,j=0,k=0;
+	size_t i = 0;
 	float val = 0;
 	Individ individ_;
 	while(miter!= vector_.end())
@@ -667,7 +667,7 @@ void PopulationParallel::inheritance(dictionary_* new_population, vector_& indic
 	if (indices.size() == 0) { return; }
 
 	float minval_ = this->inf, maxval_ = -this->inf;
-	size_t i = 0, k = 0, optimal_index_ = 0;
+	size_t k = 0, optimal_index_ = 0;
 	Population::inherit(new_population, &indices, k, optimal_index_, minval_, maxval_, 0);
 }
 void PopulationParallel::breed(dictionary_* new_population,vector_& indices, individ_ptr generator,size_t start,size_t k)

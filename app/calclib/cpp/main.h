@@ -8,24 +8,7 @@
 #include<string>
 #include<memory>
 #include<exception>
-//#include "crtdbg.h"
-/*
-#ifdef  _CRTDBG_MAP_ALLOC
 
-#define malloc(s)      _malloc_dbg(s,_NORMAL_BLOCK,__FILE__,__LINE__)
-#define calloc(c,s)    _calloc_dbg(c,s,_NORMAL_BLOCK,__FILE__,__LINE__)
-#define realloc(p,s)   _realloc_dbg(p,s,_NORMAL_BLOCK,__FILE__,__LINE__)
-#define _expand(p,s)   _expand_dbg(p,s,_NORMAL_BLOCK,__FILE__,__LINE__)
-#define free(p)        _free_dbg(p,_NORMAL_BLOCK)
-#define _msize(p)      _msize_dbg(p,_NORMAL_BLOCK)
-
-#endif  /* _CRTDBG_MAP_ALLOC */
-/*
-#ifdef _DEBUG
-#ifdef _CRTDBG_MAP_ALLOC
-#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#endif /* _CRTDBG_MAP_ALLOC */
-//#endif /* _DEBUG */
 
 
 class Mutator

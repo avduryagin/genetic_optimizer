@@ -5,7 +5,7 @@ import sys
 path=os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0,path)
 sources_=[os.path.join(path,f) for f in ['bind.cpp','main.cpp','pymodule.cpp','generalized_optimizer.cpp']]
-cpp_args = ['-std=c++14']
+cpp_args = ['-std=c++14','-fvisibility=hidden']
 
 sfc_module = Extension(
     'genetic_lib',
