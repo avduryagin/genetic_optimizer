@@ -1,12 +1,16 @@
 FROM all-docker.asuproject.ru/base/ois-base-redos-python312:241120.1448.1-release
+#c++ compiler
 RUN dnf -y update
 RUN dnf groupinstall -y "Development Tools"
+
 WORKDIR /app
 COPY requirements/common.txt /root/app/
 
 RUN python3.12 -m venv .venv
 RUN python3.12 -m pip install -r /root/app/common.txt
+#c++ compilations block
 RUN python3.12 -m pip  install --upgrade setuptools[core]
+RUN python3.12 -m pip  install pybind11==2.13.6
 
 COPY app/calclib/cpp /root/app/cpp
 RUN python3.12 /root/app/cpp/setup.py build_ext --build-lib=/usr/local/lib/python3.12/lib-dynload
