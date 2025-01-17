@@ -1,10 +1,11 @@
-from flask import request,abort
+from flask import request,abort,jsonify
 from app import app_flask
 import numpy as np
 from flask_restful import Api, Resource
 from app.calclib.py import event_optimizer as ev
 from app.logging_format import log_ as formatted_log
 from app.oauth2validation import jwt_token
+from app.decorators import add_headers
 
 #import json
 
@@ -43,7 +44,7 @@ class Optimizer(Resource):
                 log.extend(self.optimizer.log)
 
             finally:
-                return {"data": res, "log": log}
+                return jsonify({"data": res, "log": log})
 
 
 
@@ -86,7 +87,7 @@ class UniformOptimizer(Resource):
                 log.extend(self.optimizer.log)
 
             finally:
-                return {"data": res, "log": log}
+                return jsonify({"data": res, "log": log})
 
         else:
             return abort(401, description=msg)

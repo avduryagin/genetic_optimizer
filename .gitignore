@@ -9,3 +9,4 @@
 /.idea/
 /app/__pycache__
 /app/calclib/__pycache__
+/app/calclib/py/__pycache__

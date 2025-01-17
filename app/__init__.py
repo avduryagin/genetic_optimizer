@@ -5,8 +5,10 @@ from flask import Flask
 import logging
 from logging import Formatter
 from app import providers
-app_flask = Flask(__name__)
+from app.flask_config import Config
 
+app_flask = Flask(__name__)
+app_flask.config.from_object(Config)
 provider=providers.load_from_env()
 if provider is None:
     provider=providers.Provider()
