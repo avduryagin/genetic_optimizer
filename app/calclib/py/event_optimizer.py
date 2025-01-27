@@ -7,9 +7,8 @@ from app.logging_format import log_ as formatted_log
 
 
 class DataWrapper:
-
+    log=[]
     def __init__(self,json_data):
-        self.log=[]
         self.data=None
         self.means=None
         self.grouped=None
@@ -29,7 +28,8 @@ class DataWrapper:
             assert type(self.json_data) == dict, "Expect serialized json data as dict. Got {0} dtype".format(type(self.json_data))
             data_={k:self.json_data[k] for k in self.data_field }
             self.data=pd.DataFrame.from_dict(data_).astype(self.dtypes)
-            self.data.index=self.data.index.astype(np.int32)
+            self.set_index()
+            #self.data.index=self.data.index.astype(np.int32)
             self.index=self.data.index
             self.data.loc[:, 'mask'] = False
             self.means=pd.DataFrame.from_dict(self.json_data[self.target_field],dtype=np.float32)
@@ -51,6 +51,15 @@ class DataWrapper:
         except AssertionError as err:
             item = formatted_log("input json error", None, str(err))
             self.log.append(item.get())
+    def set_index(self):
+        try:
+            indices=list(self.json_data['id'].values())
+            index=np.array(indices,dtype=np.int32)
+            self.data.index=index
+        except Exception:
+            self.data.index = self.data.index.astype(np.int32)
+
+
 
 
 
@@ -148,6 +157,71 @@ class DataWrapperExp(DataWrapper):
         n = int(index.shape[0] * alpha)
         return index[:n]
 
+class DataWrapperRawJson:
+    raw_data=None
+    raw_target=None
+    raw_target_group=None
+    target_=None
+    target_group=None
+    kwargs=None
+    data_=None
+    log=[]
+    def __init__(self,raw_json):
+        self.raw_json=raw_json
+    def fit(self):
+            try:
+                self.raw_data=self.raw_json['data']
+                self.kwargs = self.raw_json['kwargs']
+                data = pd.DataFrame.from_dict(self.raw_data)
+                data.rename(columns={"type": "type_"}, inplace=True)
+                codes, uniques = pd.factorize(data["type_"])
+                data["type"] = codes
+            except KeyError as err:
+                item = formatted_log("input json error", None, str(err))
+                self.log.append(item.get())
+                raise KeyError(
+                    "Invalid json. Couldn't find one of fields: data, kwargs. Got fields {0}".format(self.raw_json.keys()))
+
+            try:
+                self.raw_target=self.raw_json['target']
+
+                codes_dict = {u: None for u in uniques}
+                for i in data.index:
+                    type_ = data.at[i, 'type_']
+                    if codes_dict[type_] is None:
+                        code = data.at[i, 'type']
+                        codes_dict[type_] = code
+
+                index = [row['type'] for row in self.raw_target]
+                cost = [row['cost'] for row in self.raw_target]
+                target = pd.DataFrame(index=index, data=cost)
+                target['code'] = np.nan
+                codes_dict[-1]=-1
+                for code in codes_dict.keys():
+                    val = codes_dict[code]
+                    target.at[code, 'code'] = val
+                mask = target.loc[:, 'code'].isnull()
+                target = target.loc[~mask]
+                target.index = target.loc[:, 'code'].astype(np.int32)
+                del target['code']
+                summ_ = target.isnull().sum(axis=1)
+                mask = summ_ < target.shape[1]
+                self.target_ = target.loc[mask].to_dict()
+            except KeyError:
+                pass
+
+            try:
+                self.raw_target_group = self.raw_json['target_group']
+                self.target_group = pd.DataFrame.from_dict(self.raw_target_group)
+                self.target_group.index = self.target_group.loc[:, 'group'].astype(np.int32)
+                del self.target_group['group']
+            except KeyError:
+                pass
+
+            self.data_ = {'data': data.to_dict(), 'kwargs': self.kwargs}
+            self.data_['data']['target'] = self.target_
+
+
 
 
 class Optimizer:
@@ -227,7 +301,7 @@ class Optimizer:
 class GeneralizedOptimizer:
     def __init__(self,json_data, npopul=100,epsilon = 1e-3,
                  threshold = 0.7,tolerance = 0.7,allow_count = 5,
-                 mutate_cell = 1,mutate_random=True,cast_number = 1,njobs=1):
+                 mutate_cell = 1,mutate_random=True,cast_number = 1,njobs=1,ncell=5):
         try:
             self.json_data=json_data
             self.npopul=npopul
@@ -295,6 +369,32 @@ class GeneralizedOptimizer:
                            cast_number=self.cast_number,njobs=self.njobs,alpha=self.alpha)
 
         return self.data.data
+
+    def validate(self,target_group=None):
+        if target_group is None:
+            return []
+        self.data.data.loc[:,'assigned_']=self.data.data.loc[:,'assigned']
+        mask=self.data.data.loc[:,'assigned_']<0
+        self.data.data.loc[mask, 'assigned_']=self.data.cells.max()+1
+
+        assigned = self.data.data.loc[:, ['group', 'assigned_']].groupby('group').max()
+        target_group.loc[:,'valid']=False
+        for g in assigned.index:
+            cell = assigned.at[g, 'assigned_']
+            try:
+                cell_ = target_group.at[g, 'period']
+                if np.isnan(cell_) or cell_ < 1:
+                    target_group.at[g, 'valid'] = True
+                    continue
+                if (cell >= 0) & (cell + 1 <= cell_):
+                    target_group.at[g, 'valid'] = True
+            except KeyError:
+                continue
+        valid_list=[{"group":i,"valid":bool(target_group.at[i,'valid'])} for i in target_group.index]
+        return valid_list
+
+
+
 class OddOptimizer:
     def __init__(self,data=DataWrapper(dict())):
         self.data=data

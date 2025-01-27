@@ -21,15 +21,21 @@ class Optimizer(Resource):
         msg='Unauthorized'
         token=True
         if token:
-            x=request.json
+            json_data=request.json
             res=[]
             log=[]
+            validation=[]
             try:
-                data = x['data']
-                kwargs = x['kwargs']
+                wrapper=ev.DataWrapperRawJson(json_data)
+                wrapper.fit()
+                data = wrapper.data_['data']
+                kwargs = wrapper.data_['kwargs']
                 self.optimizer = ev.GeneralizedOptimizer(data, **kwargs)
                 result = self.optimizer.optimize()
-                res = result.loc[:, 'assigned'].to_dict()
+                validation=self.optimizer.validate(wrapper.target_group)
+                res = [{"id": i, "assigned": int(result.at[i, 'assigned'])} for i in
+                          result.index]
+                #res = result.loc[:, 'assigned'].to_dict()
             except KeyError:
                 item=formatted_log("input json error",None,"Can't find fields data or kwargs")
                 log.append(item.get())
@@ -44,7 +50,7 @@ class Optimizer(Resource):
                 log.extend(self.optimizer.log)
 
             finally:
-                return jsonify({"data": res, "log": log})
+                return jsonify({"data": res, "log": log,"validation":validation})
 
 
 
@@ -61,16 +67,22 @@ class UniformOptimizer(Resource):
         #token,msg=jwt_token(request)
         msg='Unauthorized'
         token=True
+
         if token:
-            x=request.json
+            json_data=request.json
             res=[]
             log=[]
+            validation=[]
             try:
-                data = x['data']
-                kwargs = x['kwargs']
+                wrapper=ev.DataWrapperRawJson(json_data)
+                wrapper.fit()
+                data = wrapper.data_['data']
+                kwargs = wrapper.data_['kwargs']
                 self.optimizer=ev.UniformOptimizer(data,**kwargs)
                 result = self.optimizer.optimize()
-                res = result.loc[:, 'assigned'].to_dict()
+                res = [{"id": i, "assigned": int(result.at[i, 'assigned'])} for i in
+                          result.index]
+
 
             except KeyError:
                 item=formatted_log("input json error",None,"Can't find fields data or kwargs")
@@ -87,7 +99,7 @@ class UniformOptimizer(Resource):
                 log.extend(self.optimizer.log)
 
             finally:
-                return jsonify({"data": res, "log": log})
+                return jsonify({"data": res, "log": log,"validation":validation})
 
         else:
             return abort(401, description=msg)
