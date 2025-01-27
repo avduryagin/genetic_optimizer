@@ -64,6 +64,6 @@ stages:
     - template: pipelines/templates/triggerDockerImageBuild.yaml@templates
       parameters:
         CICDBuildDefinition: 'ois-pipe_geneticoptimizer-redos-ubi7-dockerCI'
-        CICDBranch: 'develop'
+        CICDBranch: 'main'
         AzureDevOpsPAT: '$(AzureDevOpsPAT)'
         IsTargetPipelineClassicFormat: false
