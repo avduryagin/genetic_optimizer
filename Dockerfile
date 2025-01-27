@@ -15,8 +15,7 @@ COPY --chown=:0 --chmod=750 --from=cpp-build /app/build /usr/local/lib/python3.1
 
 RUN chgrp 0 /app && chmod g=u /app && \
 	python3.12 -m venv .venv && \
-    python3.12 -m pip install --no-cache-dir -r /app/requirements/common.txt && \
-    rm -rf /var/cache/dnf /var/cache/yum
+    python3.12 -m pip install --no-cache-dir -r /app/requirements/common.txt
 
 EXPOSE 5000
 WORKDIR /app
