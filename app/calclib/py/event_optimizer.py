@@ -165,61 +165,89 @@ class DataWrapperRawJson:
     target_group=None
     kwargs=None
     data_=None
+    dtypes={'npopul': int,'epsilon': float, 'threshold': float, 'tolerance': float,
+             'allow_count': int, 'mutate_cell': int, 'mutate_random': bool, 'cast_number': int, 'njobs': int, 'ncell': int}
     log=[]
     def __init__(self,raw_json):
         self.raw_json=raw_json
     def fit(self):
-            try:
-                self.raw_data=self.raw_json['data']
-                self.kwargs = self.raw_json['kwargs']
-                data = pd.DataFrame.from_dict(self.raw_data)
-                data.rename(columns={"type": "type_"}, inplace=True)
-                codes, uniques = pd.factorize(data["type_"])
-                data["type"] = codes
-            except KeyError as err:
-                item = formatted_log("input json error", None, str(err))
-                self.log.append(item.get())
-                raise KeyError(
-                    "Invalid json. Couldn't find one of fields: data, kwargs. Got fields {0}".format(self.raw_json.keys()))
+        try:
+            self.raw_data=self.raw_json['data']
+            self.kwargs = self.raw_json['kwargs']
+            data = pd.DataFrame.from_dict(self.raw_data)
+            data.rename(columns={"type": "type_"}, inplace=True)
+            codes, uniques = pd.factorize(data["type_"])
+            data["type"] = codes
+        except KeyError as err:
+            item = formatted_log("input json error", None, str(err))
+            self.log.append(item.get())
+            raise KeyError(
+                "Invalid json. Couldn't find one of fields: data, kwargs. Got fields {0}".format(self.raw_json.keys()))
 
-            try:
-                self.raw_target=self.raw_json['target']
+        try:
+            self.raw_target=self.raw_json['target']
 
-                codes_dict = {u: None for u in uniques}
-                for i in data.index:
-                    type_ = data.at[i, 'type_']
-                    if codes_dict[type_] is None:
-                        code = data.at[i, 'type']
-                        codes_dict[type_] = code
+            codes_dict = {u: None for u in uniques}
+            for i in data.index:
+                type_ = data.at[i, 'type_']
+                if codes_dict[type_] is None:
+                    code = data.at[i, 'type']
+                    codes_dict[type_] = code
 
-                index = [row['type'] for row in self.raw_target]
-                cost = [row['cost'] for row in self.raw_target]
-                target = pd.DataFrame(index=index, data=cost)
-                target['code'] = np.nan
-                codes_dict[-1]=-1
-                for code in codes_dict.keys():
-                    val = codes_dict[code]
-                    target.at[code, 'code'] = val
-                mask = target.loc[:, 'code'].isnull()
-                target = target.loc[~mask]
-                target.index = target.loc[:, 'code'].astype(np.int32)
-                del target['code']
-                summ_ = target.isnull().sum(axis=1)
-                mask = summ_ < target.shape[1]
-                self.target_ = target.loc[mask].to_dict()
-            except KeyError:
-                pass
+            index = [row['type'] for row in self.raw_target]
+            cost = [row['cost'] for row in self.raw_target]
+            target = pd.DataFrame(index=index, data=cost)
+            target['code'] = np.nan
+            codes_dict[-1]=-1
+            for code in codes_dict.keys():
+                val = codes_dict[code]
+                target.at[code, 'code'] = val
+            mask = target.loc[:, 'code'].isnull()
+            target = target.loc[~mask]
+            target.index = target.loc[:, 'code'].astype(np.int32)
+            del target['code']
+            summ_ = target.isnull().sum(axis=1)
+            mask = summ_ < target.shape[1]
+            self.target_ = target.loc[mask].to_dict()
+        except KeyError:
+            pass
 
-            try:
-                self.raw_target_group = self.raw_json['target_group']
-                self.target_group = pd.DataFrame.from_dict(self.raw_target_group)
-                self.target_group.index = self.target_group.loc[:, 'group'].astype(np.int32)
-                del self.target_group['group']
-            except KeyError:
-                pass
+        try:
+            self.raw_target_group = self.raw_json['target_group']
+            self.target_group = pd.DataFrame.from_dict(self.raw_target_group)
+            self.target_group.index = self.target_group.loc[:, 'group'].astype(np.int32)
+            del self.target_group['group']
+        except KeyError:
+            pass
 
-            self.data_ = {'data': data.to_dict(), 'kwargs': self.kwargs}
-            self.data_['data']['target'] = self.target_
+        self.data_ = {'data': data.to_dict(), 'kwargs': self.kwargs}
+        self.data_['data']['target'] = self.target_
+        self.__kwargs_assertion__()
+
+    def __kwargs_assertion__(self):
+        raise_error = False
+        if self.kwargs is not None:
+            for key in self.kwargs.keys():
+                arg=self.kwargs[key]
+                try:
+                    dtype=self.dtypes[key]
+                    if not type(arg)==dtype:
+                        raise_error=True
+                        item = formatted_log("Argument type error", None, "Expect argument {key} as type {dtype}. Got as type {type_}".format(key=key,dtype=dtype,type_=type(arg)))
+                        self.log.append(item.get())
+                except KeyError:
+                    raise_error = True
+                    item = formatted_log("Argument type error", None,
+                                         "Unknown argument {key}:{dtype}".format(key=key, dtype=arg))
+                    self.log.append(item.get())
+                    continue
+        if raise_error:
+            raise AssertionError
+
+
+
+
+
 
 
 
@@ -302,6 +330,7 @@ class GeneralizedOptimizer:
     def __init__(self,json_data, npopul=100,epsilon = 1e-3,
                  threshold = 0.7,tolerance = 0.7,allow_count = 5,
                  mutate_cell = 1,mutate_random=True,cast_number = 1,njobs=1,ncell=5):
+        log=[]
         try:
             self.json_data=json_data
             self.npopul=npopul
@@ -314,7 +343,6 @@ class GeneralizedOptimizer:
             self.cast_number=cast_number
             self.njobs=njobs
             self.alpha=1.
-            self.log=[]
             self.data=None
             self.data=DataWrapperExp(self.json_data)
             self.data.fit()
@@ -545,6 +573,7 @@ class UniformOptimizer:
     def __init__(self,json_data,ncell=5,maxiter=100, npopul=100,epsilon = 1e-3,
                  threshold = 0.7,tolerance = 0.7,allow_count = 5,
                  mutate_cell = 1,mutate_random=True,cast_number = 1,njobs=1):
+        log=[]
         try:
             self.json_data=json_data
             self.ncell=ncell
@@ -559,7 +588,7 @@ class UniformOptimizer:
             self.cast_number=cast_number
             self.njobs=njobs
             self.niter=0
-            self.log=[]
+
             self.fit()
         except Exception as err:
             item = formatted_log("Argument data error", None, str(err))

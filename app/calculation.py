@@ -47,6 +47,7 @@ class Optimizer(Resource):
             except AssertionError as err:
                 item=formatted_log("Assertion error",None,str(err))
                 log.append(item.get())
+                log.extend(wrapper.log)
                 log.extend(self.optimizer.log)
 
             finally:
@@ -96,6 +97,7 @@ class UniformOptimizer(Resource):
             except AssertionError as err:
                 item=formatted_log("Assertion error",None,str(err))
                 log.append(item.get())
+                log.extend(wrapper.log)
                 log.extend(self.optimizer.log)
 
             finally:
