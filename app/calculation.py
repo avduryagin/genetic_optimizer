@@ -31,6 +31,9 @@ class Optimizer(Resource):
                 data = wrapper.data_['data']
                 kwargs = wrapper.data_['kwargs']
                 self.optimizer = ev.GeneralizedOptimizer(data, **kwargs)
+                log = self.optimizer.log[:]
+                assert len(self.optimizer.log)==0,"Data initializing error"
+
                 result = self.optimizer.optimize()
                 validation=self.optimizer.validate(wrapper.target_group)
                 res = [{"id": i, "assigned": int(result.at[i, 'assigned'])} for i in
@@ -80,6 +83,8 @@ class UniformOptimizer(Resource):
                 data = wrapper.data_['data']
                 kwargs = wrapper.data_['kwargs']
                 self.optimizer=ev.UniformOptimizer(data,**kwargs)
+                log = self.optimizer.log[:]
+                assert len(self.optimizer.log)==0,"Data initializing error"
                 result = self.optimizer.optimize()
                 res = [{"id": i, "assigned": int(result.at[i, 'assigned'])} for i in
                           result.index]
@@ -98,7 +103,7 @@ class UniformOptimizer(Resource):
                 item=formatted_log("Assertion error",None,str(err))
                 log.append(item.get())
                 log.extend(wrapper.log)
-                log.extend(self.optimizer.log)
+                #log.extend(self.optimizer.log)
 
             finally:
                 return jsonify({"data": res, "log": log,"validation":validation})

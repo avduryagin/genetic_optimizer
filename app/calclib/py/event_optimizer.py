@@ -22,6 +22,7 @@ class DataWrapper:
         self.data_field=self.dtypes.keys()
         self.target_field='target'
         self.json_data=json_data
+        self.log=[]
 
     def fit(self):
         try:
@@ -36,6 +37,12 @@ class DataWrapper:
             self.means.index=self.means.index.astype(self.data["type"].dtype)
             self.means.columns = self.means.columns.astype(self.data["assigned"].dtype)
             self.means.fillna(0., inplace=True)
+            row=None
+            try:
+                row=self.means.loc[-1]
+            except KeyError:
+                row=self.means.sum(axis=0)
+                self.means.loc[-1]=row
             self.assertion_()
             self.grouped=self.data.groupby(["group","type"]).groups
             self.cells=np.unique(self.means.columns)
@@ -47,10 +54,11 @@ class DataWrapper:
         except KeyError as err:
             item = formatted_log("input json error", None, str(err))
             self.log.append(item.get())
-            raise KeyError("Invalid json. Couldn't find one of fields: main, target. Got fields {0}".format(self.json_data.keys()))
+            raise KeyError("Invalid json. Couldn't find one of fields: data, target. Got fields {0}".format(self.json_data.keys()))
         except AssertionError as err:
             item = formatted_log("input json error", None, str(err))
             self.log.append(item.get())
+
     def set_index(self):
         try:
             indices=list(self.json_data['id'].values())
@@ -58,6 +66,15 @@ class DataWrapper:
             self.data.index=index
         except Exception:
             self.data.index = self.data.index.astype(np.int32)
+
+    def check_types(self):
+        lost=np.array([],dtype=np.int32)
+        if self.data is not None:
+            mask=~self.data.loc[:,"type"].isin(self.means.index)
+            lost=mask[mask].index
+            return lost
+        return lost
+
 
 
 
@@ -170,6 +187,15 @@ class DataWrapperRawJson:
     log=[]
     def __init__(self,raw_json):
         self.raw_json=raw_json
+        self.raw_data = None
+        self.raw_target = None
+        self.raw_target_group = None
+        self.target_ = None
+        self.target_group = None
+        self.kwargs = None
+        self.data_ = None
+        self.log = []
+
     def fit(self):
         try:
             self.raw_data=self.raw_json['data']
@@ -217,8 +243,16 @@ class DataWrapperRawJson:
             self.target_group = pd.DataFrame.from_dict(self.raw_target_group)
             self.target_group.index = self.target_group.loc[:, 'group'].astype(np.int32)
             del self.target_group['group']
+            mask=self.target_group.loc[:,'period'].isnull()
+            if mask[mask].shape[0]>0:
+                item = formatted_log("Argument type error", None, "Target group has an empty period for groups {group}".format(group=mask[mask].index.tolist()))
+                self.log.append(item.get())
+                raise AssertionError
+
+
         except KeyError:
             pass
+
 
         self.data_ = {'data': data.to_dict(), 'kwargs': self.kwargs}
         self.data_['data']['target'] = self.target_
@@ -327,11 +361,13 @@ class Optimizer:
 
 
 class GeneralizedOptimizer:
+    log = []
     def __init__(self,json_data, npopul=100,epsilon = 1e-3,
                  threshold = 0.7,tolerance = 0.7,allow_count = 5,
                  mutate_cell = 1,mutate_random=True,cast_number = 1,njobs=1,ncell=5):
-        log=[]
+
         try:
+            self.log=[]
             self.json_data=json_data
             self.npopul=npopul
             self.epsilon=epsilon
@@ -347,11 +383,20 @@ class GeneralizedOptimizer:
             self.data=DataWrapperExp(self.json_data)
             self.data.fit()
             self.log.extend(self.data.log)
+            lost_types=self.data.check_types()
+            if lost_types.shape[0]>0:
+                item = formatted_log("input json error", None, "The types of ids {id_} are not in target".format(id_=lost_types.tolist()))
+                self.log.append(item.get())
+
+
         except Exception as err:
-            item = formatted_log("Argument data error. DataFrame has type {0}. Error type {1}".format(type(self.data),err), None, str(err))
+            item = formatted_log("Argument data error. DataFrame has type {0}. Error type {1}".format(self.data.data.dtypes,err), None, str(err))
             self.log.append(item.get())
-        finally:
-            assert len(self.log)==0, "Input data error"
+        #finally:
+            #if len(self.log)>0:
+                #raise AssertionError
+
+            #assert len(self.log)==0, "Input data error"
 
 
     def reduce(self):
@@ -570,11 +615,13 @@ class EvenOptimizer(OddOptimizer):
 
 
 class UniformOptimizer:
+    log = []
     def __init__(self,json_data,ncell=5,maxiter=100, npopul=100,epsilon = 1e-3,
                  threshold = 0.7,tolerance = 0.7,allow_count = 5,
                  mutate_cell = 1,mutate_random=True,cast_number = 1,njobs=1):
-        log=[]
+
         try:
+            self.log=[]
             self.json_data=json_data
             self.ncell=ncell
             self.npopul=npopul
@@ -588,13 +635,12 @@ class UniformOptimizer:
             self.cast_number=cast_number
             self.njobs=njobs
             self.niter=0
-
             self.fit()
         except Exception as err:
             item = formatted_log("Argument data error", None, str(err))
             self.log.append(item.get())
-        finally:
-            assert len(self.data.log) == 0, "Input data error"
+        #finally:
+            #assert len(self.data.log) == 0, "Input data error"
 
 
 
@@ -629,8 +675,11 @@ class UniformOptimizer:
             agg_cell.loc[:, "cost_"] = agg_cell.loc[:, "cost"] / (self.ncell - agg_cell.index).astype(dtype_)
             cell_frame.values.fill(0)
             cell_frame.loc[agg_cell.index, "cost"] = agg_cell.loc[:, "cost_"]
-            val = self.__mean(0, x=cell_frame.loc[:, "cost"].values)
-            self.data.means.loc[-1] += val
+            val_ = self.__mean(0, x=cell_frame.loc[:, "cost"].values)
+            rval=self.data.data.loc[mask,'cost'].max()
+            lval=self.data.means.at[-1,0]+val_
+            val=max(rval,lval)
+            self.data.means.loc[-1]=val
             self.data.data.loc[amask, "assigned"] = -1
             #json_data = {"data": self.data.data.to_dict(), "target": self.data.means.to_dict()}
             json_data=self.data.data.to_dict()
