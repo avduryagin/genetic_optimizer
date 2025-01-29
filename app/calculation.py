@@ -26,13 +26,11 @@ class Optimizer(Resource):
             log=[]
             validation=[]
             try:
-                wrapper=ev.DataWrapperRawJson(json_data,log)
+                wrapper=ev.DataWrapperRawJson(json_data,log,uniform_mode=False)
                 wrapper.fit()
                 data = wrapper.data_['data']
                 kwargs = wrapper.data_['kwargs']
                 self.optimizer = ev.GeneralizedOptimizer(data,log, **kwargs)
-                #log = self.optimizer.log[:]
-                #assert len(self.optimizer.log)==0,"Data initializing error"
 
                 result = self.optimizer.optimize()
                 validation=self.optimizer.validate(wrapper.target_group)
@@ -78,7 +76,7 @@ class UniformOptimizer(Resource):
             log=[]
             validation=[]
             try:
-                wrapper=ev.DataWrapperRawJson(json_data,log,validate_target=False)
+                wrapper=ev.DataWrapperRawJson(json_data,log,uniform_mode=True)
                 wrapper.fit()
                 data = wrapper.data_['data']
                 kwargs = wrapper.data_['kwargs']

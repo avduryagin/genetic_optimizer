@@ -29,7 +29,7 @@ class DataWrapper:
             assert type(self.json_data) == dict, "Expect serialized json data as dict. Got {0} dtype".format(type(self.json_data))
             data_={k:self.json_data[k] for k in self.data_field }
             self.data=pd.DataFrame.from_dict(data_).astype(self.dtypes)
-            self.set_index()
+            #self.set_index()
             #self.data.index=self.data.index.astype(np.int32)
             self.index=self.data.index
             self.data.loc[:, 'mask'] = False
@@ -185,45 +185,54 @@ class DataWrapperRawJson:
     dtypes={'npopul': int,'epsilon': float, 'threshold': float, 'tolerance': float,
              'allow_count': int, 'mutate_cell': int, 'mutate_random': bool, 'cast_number': int, 'njobs': int, 'ncell': int}
     log=[]
-    def __init__(self,raw_json,log,validate_target=True):
+    def __init__(self,raw_json,log,uniform_mode=True):
         self.raw_json=raw_json
         self.raw_data = None
         self.raw_target = None
         self.raw_target_group = None
         self.target_ = None
+        self.target=None
         self.target_group = None
         self.kwargs = None
         self.data_ = None
+        self.data=None
         self.log = log
-        self.validate_target=validate_target
+        self.uniform_mode=uniform_mode
+        self.codes=None
+        self.uniques=None
 
     def fit(self):
         try:
             self.raw_data=self.raw_json['data']
             self.kwargs = self.raw_json['kwargs']
-            data = pd.DataFrame.from_dict(self.raw_data)
-            data.rename(columns={"type": "type_"}, inplace=True)
-            codes, uniques = pd.factorize(data["type_"])
-            data["type"] = codes
+            self.__kwargs_assertion__()
+            self.data = pd.DataFrame.from_dict(self.raw_data)
+            self.data.index=self.data.loc[:,'id'].astype(np.int32)
+            if self.uniform_mode:
+                self.data.loc[:,'type']=0
+            else:
+                self.data.rename(columns={"type": "type_"}, inplace=True)
+                self.codes, self.uniques = pd.factorize(self.data["type_"])
+                self.data["type"] = self.codes
+
         except KeyError as err:
             item = formatted_log("input json error", None, str(err))
             self.log.append(item.get())
             raise KeyError(
                 "Invalid json. Couldn't find one of fields: data, kwargs. Got fields {0}".format(self.raw_json.keys()))
-        if not self.validate_target:
-            self.data_ = {'data': data.to_dict(), 'kwargs': self.kwargs}
+        if  self.uniform_mode:
+            self.data_ = {'data': self.data.to_dict(), 'kwargs': self.kwargs}
             self.data_['data']['target'] = []
             return
 
 
         try:
             self.raw_target=self.raw_json['target']
-
-            codes_dict = {u: None for u in uniques}
-            for i in data.index:
-                type_ = data.at[i, 'type_']
+            codes_dict = {u: None for u in self.uniques}
+            for i in self.data.index:
+                type_ = self.data.at[i, 'type_']
                 if codes_dict[type_] is None:
-                    code = data.at[i, 'type']
+                    code = self.data.at[i, 'type']
                     codes_dict[type_] = code
 
             index = [row['type'] for row in self.raw_target]
@@ -240,7 +249,8 @@ class DataWrapperRawJson:
             del target['code']
             summ_ = target.isnull().sum(axis=1)
             mask = summ_ < target.shape[1]
-            self.target_ = target.loc[mask].to_dict()
+            self.target=target.loc[mask]
+            self.target_ = self.target.to_dict()
         except KeyError:
             pass
 
@@ -250,19 +260,20 @@ class DataWrapperRawJson:
             self.target_group.index = self.target_group.loc[:, 'group'].astype(np.int32)
             del self.target_group['group']
             mask=self.target_group.loc[:,'period'].isnull()
-            if mask[mask].shape[0]>0:
-                item = formatted_log("Argument type error", None, "Target group has an empty period for groups {group}".format(group=mask[mask].index.tolist()))
-                self.log.append(item.get())
-                raise AssertionError
+            self.target_group.loc[mask,'period']=self.target.shape[1]
+            #if mask[mask].shape[0]>0:
+                #item = formatted_log("Argument type error", None, "Target group has an empty period for groups {group}".format(group=mask[mask].index.tolist()))
+                #self.log.append(item.get())
+                #raise AssertionError
 
 
         except KeyError:
             pass
 
 
-        self.data_ = {'data': data.to_dict(), 'kwargs': self.kwargs}
+        self.data_ = {'data': self.data.to_dict(), 'kwargs': self.kwargs}
         self.data_['data']['target'] = self.target_
-        self.__kwargs_assertion__()
+        self.__check_types__()
 
     def __kwargs_assertion__(self):
         raise_error = False
@@ -283,6 +294,19 @@ class DataWrapperRawJson:
                     continue
         if raise_error:
             raise AssertionError
+
+    def __check_types__(self):
+        lost=np.array([],dtype=np.int32)
+        if self.data is not None:
+            mask=~self.data.loc[:,"type"].isin(self.target.index)
+            lost=mask[mask].index
+        if lost.shape[0]>0:
+            item = formatted_log("input json error", None,
+                                 "The types of ids {id_} are not in target".format(id_=lost.tolist()))
+            self.log.append(item.get())
+            raise AssertionError("input json error")
+
+
 
 
 
@@ -368,7 +392,7 @@ class Optimizer:
 
 class GeneralizedOptimizer:
     log = []
-    def __init__(self,json_data, log,check_target=True,npopul=100,epsilon = 1e-3,
+    def __init__(self,json_data, log,check_target=False,npopul=100,epsilon = 1e-3,
                  threshold = 0.7,tolerance = 0.7,allow_count = 5,
                  mutate_cell = 1,mutate_random=True,cast_number = 1,njobs=1,ncell=5):
 
@@ -450,14 +474,14 @@ class GeneralizedOptimizer:
     def validate(self,target_group=None):
         if target_group is None:
             return []
-        self.data.data.loc[:,'assigned_']=self.data.data.loc[:,'assigned']
-        mask=self.data.data.loc[:,'assigned_']<0
-        self.data.data.loc[mask, 'assigned_']=self.data.cells.max()+1
+        #self.data.data.loc[:,'assigned_']=self.data.data.loc[:,'assigned']
+        mask=self.data.data.loc[:,'assigned']<0
+        #self.data.data.loc[mask, 'assigned_']=self.data.cells.max()+1
 
-        assigned = self.data.data.loc[:, ['group', 'assigned_']].groupby('group').max()
+        assigned = self.data.data.loc[~mask, ['group', 'assigned']].groupby('group').max()
         target_group.loc[:,'valid']=False
         for g in assigned.index:
-            cell = assigned.at[g, 'assigned_']
+            cell = assigned.at[g, 'assigned']
             try:
                 cell_ = target_group.at[g, 'period']
                 if np.isnan(cell_) or cell_ < 1:
