@@ -51,7 +51,7 @@ class Optimizer(Resource):
                 item=formatted_log("Assertion error",None,str(err))
                 log.append(item.get())
                 log.extend(wrapper.log)
-                log.extend(self.optimizer.log)
+                #log.extend(self.optimizer.log)
 
             finally:
                 return jsonify({"data": res, "log": log,"validation":validation})
@@ -78,7 +78,7 @@ class UniformOptimizer(Resource):
             log=[]
             validation=[]
             try:
-                wrapper=ev.DataWrapperRawJson(json_data)
+                wrapper=ev.DataWrapperRawJson(json_data,validate_target=False)
                 wrapper.fit()
                 data = wrapper.data_['data']
                 kwargs = wrapper.data_['kwargs']

@@ -185,7 +185,7 @@ class DataWrapperRawJson:
     dtypes={'npopul': int,'epsilon': float, 'threshold': float, 'tolerance': float,
              'allow_count': int, 'mutate_cell': int, 'mutate_random': bool, 'cast_number': int, 'njobs': int, 'ncell': int}
     log=[]
-    def __init__(self,raw_json):
+    def __init__(self,raw_json,validate_target=True):
         self.raw_json=raw_json
         self.raw_data = None
         self.raw_target = None
@@ -195,6 +195,7 @@ class DataWrapperRawJson:
         self.kwargs = None
         self.data_ = None
         self.log = []
+        self.validate_target=validate_target
 
     def fit(self):
         try:
@@ -209,6 +210,11 @@ class DataWrapperRawJson:
             self.log.append(item.get())
             raise KeyError(
                 "Invalid json. Couldn't find one of fields: data, kwargs. Got fields {0}".format(self.raw_json.keys()))
+        if not self.validate_target:
+            self.data_ = {'data': data.to_dict(), 'kwargs': self.kwargs}
+            self.data_['data']['target'] = []
+            return
+
 
         try:
             self.raw_target=self.raw_json['target']

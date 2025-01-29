@@ -8,7 +8,7 @@ with open(fpath,'r') as file:
     json_data=json.load(file)
 #json_data['data'][-1]['type']='EVPSPIR'
 #json_data['data'][-2]['type']='EVPSPIR'
-wrapper=ev.DataWrapperRawJson(json_data)
+wrapper=ev.DataWrapperRawJson(json_data,validate_target=False)
 wrapper.fit()
 print(wrapper.log)
 jfile=wrapper.data_
@@ -19,10 +19,11 @@ optimizer=None
 log=[]
 try:
 
-    optimizer=ev.GeneralizedOptimizer(data,**kwargs)
+    #optimizer=ev.GeneralizedOptimizer(data,**kwargs)
+    optimizer=ev.UniformOptimizer(data,**kwargs)
     log = optimizer.log[:]
     assert len(optimizer.log) == 0, "Data initializing error"
-    #optimizer=ev.UniformOptimizer(data,**kwargs)
+
     result=optimizer.optimize()
     validation = optimizer.validate(wrapper.target_group)
 
