@@ -26,13 +26,13 @@ class Optimizer(Resource):
             log=[]
             validation=[]
             try:
-                wrapper=ev.DataWrapperRawJson(json_data)
+                wrapper=ev.DataWrapperRawJson(json_data,log)
                 wrapper.fit()
                 data = wrapper.data_['data']
                 kwargs = wrapper.data_['kwargs']
-                self.optimizer = ev.GeneralizedOptimizer(data, **kwargs)
-                log = self.optimizer.log[:]
-                assert len(self.optimizer.log)==0,"Data initializing error"
+                self.optimizer = ev.GeneralizedOptimizer(data,log, **kwargs)
+                #log = self.optimizer.log[:]
+                #assert len(self.optimizer.log)==0,"Data initializing error"
 
                 result = self.optimizer.optimize()
                 validation=self.optimizer.validate(wrapper.target_group)
@@ -50,7 +50,7 @@ class Optimizer(Resource):
             except AssertionError as err:
                 item=formatted_log("Assertion error",None,str(err))
                 log.append(item.get())
-                log.extend(wrapper.log)
+                #log.extend(wrapper.log)
                 #log.extend(self.optimizer.log)
 
             finally:
@@ -78,13 +78,13 @@ class UniformOptimizer(Resource):
             log=[]
             validation=[]
             try:
-                wrapper=ev.DataWrapperRawJson(json_data,validate_target=False)
+                wrapper=ev.DataWrapperRawJson(json_data,log,validate_target=False)
                 wrapper.fit()
                 data = wrapper.data_['data']
                 kwargs = wrapper.data_['kwargs']
-                self.optimizer=ev.UniformOptimizer(data,**kwargs)
-                log = self.optimizer.log[:]
-                assert len(self.optimizer.log)==0,"Data initializing error"
+                self.optimizer=ev.UniformOptimizer(data,log,**kwargs)
+                #log = self.optimizer.log[:]
+                #assert len(self.optimizer.log)==0,"Data initializing error"
                 result = self.optimizer.optimize()
                 res = [{"id": i, "assigned": int(result.at[i, 'assigned'])} for i in
                           result.index]
@@ -102,7 +102,7 @@ class UniformOptimizer(Resource):
             except AssertionError as err:
                 item=formatted_log("Assertion error",None,str(err))
                 log.append(item.get())
-                log.extend(wrapper.log)
+                #log.extend(wrapper.log)
                 #log.extend(self.optimizer.log)
 
             finally:

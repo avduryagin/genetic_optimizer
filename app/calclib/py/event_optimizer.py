@@ -185,7 +185,7 @@ class DataWrapperRawJson:
     dtypes={'npopul': int,'epsilon': float, 'threshold': float, 'tolerance': float,
              'allow_count': int, 'mutate_cell': int, 'mutate_random': bool, 'cast_number': int, 'njobs': int, 'ncell': int}
     log=[]
-    def __init__(self,raw_json,validate_target=True):
+    def __init__(self,raw_json,log,validate_target=True):
         self.raw_json=raw_json
         self.raw_data = None
         self.raw_target = None
@@ -194,7 +194,7 @@ class DataWrapperRawJson:
         self.target_group = None
         self.kwargs = None
         self.data_ = None
-        self.log = []
+        self.log = log
         self.validate_target=validate_target
 
     def fit(self):
@@ -368,12 +368,12 @@ class Optimizer:
 
 class GeneralizedOptimizer:
     log = []
-    def __init__(self,json_data, npopul=100,epsilon = 1e-3,
+    def __init__(self,json_data, log,check_target=True,npopul=100,epsilon = 1e-3,
                  threshold = 0.7,tolerance = 0.7,allow_count = 5,
                  mutate_cell = 1,mutate_random=True,cast_number = 1,njobs=1,ncell=5):
 
         try:
-            self.log=[]
+            self.log=log
             self.json_data=json_data
             self.npopul=npopul
             self.epsilon=epsilon
@@ -389,20 +389,18 @@ class GeneralizedOptimizer:
             self.data=DataWrapperExp(self.json_data)
             self.data.fit()
             self.log.extend(self.data.log)
-            lost_types=self.data.check_types()
-            if lost_types.shape[0]>0:
-                item = formatted_log("input json error", None, "The types of ids {id_} are not in target".format(id_=lost_types.tolist()))
-                self.log.append(item.get())
+            if check_target:
+                lost_types=self.data.check_types()
+                if lost_types.shape[0]>0:
+                    item = formatted_log("input json error", None, "The types of ids {id_} are not in target".format(id_=lost_types.tolist()))
+                    self.log.append(item.get())
 
 
         except Exception as err:
             item = formatted_log("Argument data error. DataFrame has type {0}. Error type {1}".format(self.data.data.dtypes,err), None, str(err))
             self.log.append(item.get())
-        #finally:
-            #if len(self.log)>0:
-                #raise AssertionError
-
-            #assert len(self.log)==0, "Input data error"
+        finally:
+            assert len(self.log)==0, "Input data error"
 
 
     def reduce(self):
@@ -622,12 +620,12 @@ class EvenOptimizer(OddOptimizer):
 
 class UniformOptimizer:
     log = []
-    def __init__(self,json_data,ncell=5,maxiter=100, npopul=100,epsilon = 1e-3,
+    def __init__(self,json_data,log,ncell=5,maxiter=100, npopul=100,epsilon = 1e-3,
                  threshold = 0.7,tolerance = 0.7,allow_count = 5,
                  mutate_cell = 1,mutate_random=True,cast_number = 1,njobs=1):
 
         try:
-            self.log=[]
+            self.log=log
             self.json_data=json_data
             self.ncell=ncell
             self.npopul=npopul
@@ -645,8 +643,8 @@ class UniformOptimizer:
         except Exception as err:
             item = formatted_log("Argument data error", None, str(err))
             self.log.append(item.get())
-        #finally:
-            #assert len(self.data.log) == 0, "Input data error"
+        finally:
+            assert len(self.data.log) == 0, "Input data error"
 
 
 
@@ -690,7 +688,7 @@ class UniformOptimizer:
             #json_data = {"data": self.data.data.to_dict(), "target": self.data.means.to_dict()}
             json_data=self.data.data.to_dict()
             json_data['target']=self.data.means.to_dict()
-            optimizer = GeneralizedOptimizer(json_data,npopul=self.npopul,epsilon=self.epsilon,threshold=self.threshold,tolerance=self.tolerance,
+            optimizer = GeneralizedOptimizer(json_data,self.log,check_target=False,npopul=self.npopul,epsilon=self.epsilon,threshold=self.threshold,tolerance=self.tolerance,
                                              allow_count=self.allow_count,mutate_cell=self.mutate_cell,mutate_random=self.mutate_random,cast_number=self.cast_number,njobs=self.njobs)
             self.data.data = optimizer.optimize()
             self.niter+=1
