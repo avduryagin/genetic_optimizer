@@ -260,7 +260,7 @@ class DataWrapperRawJson:
             self.target_group.index = self.target_group.loc[:, 'group'].astype(np.int32)
             del self.target_group['group']
             mask=self.target_group.loc[:,'period'].isnull()
-            self.target_group.loc[mask,'period']=self.target.shape[1]
+            self.target_group.loc[mask,'period']=self.target.shape[1]+1
             #if mask[mask].shape[0]>0:
                 #item = formatted_log("Argument type error", None, "Target group has an empty period for groups {group}".format(group=mask[mask].index.tolist()))
                 #self.log.append(item.get())
@@ -474,20 +474,22 @@ class GeneralizedOptimizer:
     def validate(self,target_group=None):
         if target_group is None:
             return []
-        #self.data.data.loc[:,'assigned_']=self.data.data.loc[:,'assigned']
+        self.data.data.loc[:,'assigned_']=self.data.data.loc[:,'assigned']
         mask=self.data.data.loc[:,'assigned']<0
-        #self.data.data.loc[mask, 'assigned_']=self.data.cells.max()+1
-
-        assigned = self.data.data.loc[~mask, ['group', 'assigned']].groupby('group').max()
+        ceil=self.data.means.shape[1]
+        self.data.data.loc[mask, 'assigned_']=ceil
+        assigned = self.data.data.loc[:, ['group', 'assigned_']].groupby('group').max()
         target_group.loc[:,'valid']=False
+
         for g in assigned.index:
-            cell = assigned.at[g, 'assigned']
+            cell = assigned.at[g, 'assigned_']
             try:
                 cell_ = target_group.at[g, 'period']
-                if np.isnan(cell_) or cell_ < 1:
+                if np.isnan(cell_) or cell_ < 1 or (cell_>=ceil+1):
+                    #if cell<ceil:
                     target_group.at[g, 'valid'] = True
                     continue
-                if (cell >= 0) & (cell + 1 <= cell_):
+                if cell<cell_:
                     target_group.at[g, 'valid'] = True
             except KeyError:
                 continue
