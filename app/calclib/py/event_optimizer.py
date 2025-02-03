@@ -480,19 +480,24 @@ class GeneralizedOptimizer:
         self.data.data.loc[mask, 'assigned_']=ceil
         assigned = self.data.data.loc[:, ['group', 'assigned_']].groupby('group').max()
         target_group.loc[:,'valid']=False
+        target_group.loc[:, 'missed'] = True
 
         for g in assigned.index:
             cell = assigned.at[g, 'assigned_']
             try:
                 cell_ = target_group.at[g, 'period']
+                target_group.at[g, 'missed'] = False
                 if np.isnan(cell_) or cell_ < 1 or (cell_>=ceil+1):
-                    #if cell<ceil:
                     target_group.at[g, 'valid'] = True
                     continue
                 if cell<cell_:
                     target_group.at[g, 'valid'] = True
             except KeyError:
                 continue
+        for g in target_group.index:
+            if target_group.at[g,'missed']:
+                target_group.at[g, 'valid']=True
+        #del target_group['missed']
         valid_list=[{"group":i,"valid":bool(target_group.at[i,'valid'])} for i in target_group.index]
         return valid_list
 
