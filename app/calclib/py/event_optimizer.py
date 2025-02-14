@@ -412,6 +412,7 @@ class GeneralizedOptimizer:
             self.data=None
             self.data=DataWrapperExp(self.json_data)
             self.data.fit()
+            self.modes=["type","force","all"]
             self.log.extend(self.data.log)
             if check_target:
                 lost_types=self.data.check_types()
@@ -465,6 +466,7 @@ class GeneralizedOptimizer:
     def optimize_eve(self):
         self.reduce()
         optimizer=EvenOptimizer(self.data)
+        optimizer.modes=self.modes
         optimizer.optimize(npopul=self.npopul,epsilon=self.epsilon,threshold=self.threshold,tolerance=self.tolerance,
                            allow_count=self.allow_count,mutate_cell=self.mutate_cell,mutate_random=self.mutate_random,
                            cast_number=self.cast_number,njobs=self.njobs,alpha=self.alpha)
@@ -564,7 +566,7 @@ class EvenOptimizer(OddOptimizer):
                 break
             cell=cell_
 
-    def fill_by_types(self,cell,group,mode="type",npopul=100, epsilon=1e-3,
+    def __fill_by_types__(self,cell,group,mode="type",npopul=100, epsilon=1e-3,
                       threshold=0.7, tolerance=0.7, allow_count=5, mutate_cell=1,
                       mutate_random=True, cast_number=3, njobs=1):
         alpha = 1
@@ -624,28 +626,87 @@ class EvenOptimizer(OddOptimizer):
                 #return leave_cell
         return leave_cell
 
+    def fill_by_types(self,cell,group,mode="type",npopul=100, epsilon=1e-3,
+                      threshold=0.7, tolerance=0.7, allow_count=5, mutate_cell=1,
+                      mutate_random=True, cast_number=3, njobs=1):
+        alpha = 1
+        if mode=="type":
+            types=self.data.types_index
+            main_types=types
+
+
+
+        elif mode=="force":
+            types=(self.data.types_rating(cell),)
+            main_types=(-1,)
+            alpha=self.alpha
+
+        else:
+            types=(self.data.other_types,)
+            main_types = (-1,)
+
+
+        leave_cell = True
+        for type_,main_type in zip(types,main_types):
+            bound = float(self.data.get_mean(cell, main_type))
+            if not (bound > 0):
+                continue
+            index = self.data.get_index(cell, group, type_,alpha)
+
+            n = index.shape[0]
+            if n == 0:
+                continue
+            xmin=self.data.data.loc[index, "cost"].values.min()
+
+            if xmin>bound:
+                continue
+
+            xsum=self.data.data.loc[index, "cost"].values.sum()
+            _val=0
+            if xsum<=bound:
+                indices=index
+                _val=-xsum
+            else:
+                x = self.data.data.loc[index, "cost"].values * -1
+                y = np.zeros(n, dtype=np.float32)
+                w = np.vstack([x, y], dtype=np.float32).T
+                optimizer = op.Optimizer(data_=w, npopul_=npopul, bound_=bound, threshold_=threshold, epsilon_=epsilon,
+                                         tolerance_=tolerance, mutate_cell_=mutate_cell, mutate_random_=mutate_random,
+                                         cast_number_=cast_number,
+                                         allow_count_=allow_count, engine="cpp", njobs_=njobs)
+
+                optimizer.optimize()
+                solution = optimizer.solution
+                indices = index[solution.code]
+                _val=solution.val
+
+            if indices.shape[0] > 0:
+                leave_cell=False
+                self.data.set_mean(cell, main_type, _val)
+                self.data.assign_index(cell, indices)
+
+        return leave_cell
+
     def fill_by_group(self,group,cell_=0,npopul=100, epsilon=1e-3,
                       threshold=0.7, tolerance=0.7, allow_count=5, mutate_cell=1,
                       mutate_random=True, cast_number=3, njobs=1)->int:
 
-        group_distance=self.data.group_distance.at[group,"cell"]
-        leave_cell = False
+        #group_distance=self.data.group_distance.at[group,"cell"]
         cell=cell_
         while cell< self.data.cells.shape[0]:
+            leave_cell = True
             for mode in self.modes:
-                leave_cell=self.fill_by_types(cell,group,mode=mode,npopul=npopul, epsilon=epsilon, threshold=threshold,
+                leave_cell_=self.fill_by_types(cell,group,mode=mode,npopul=npopul, epsilon=epsilon, threshold=threshold,
                                          tolerance=tolerance, allow_count=allow_count, mutate_cell=mutate_cell,
                                          mutate_random=mutate_random, cast_number=cast_number, njobs=njobs)
-                if leave_cell:
-                    cell+=1
-                    break
-            if not leave_cell:
-                if cell<group_distance:
-                    cell+=1
-                else:
-                    return cell
+                leave_cell=leave_cell&leave_cell_
 
-        return cell
+            if leave_cell:
+                cell+=1
+            else:
+                cell_=cell
+                continue
+        return cell_
 
 
 
@@ -670,6 +731,7 @@ class UniformOptimizer:
             self.cast_number=cast_number
             self.njobs=njobs
             self.niter=0
+            self.modes=['all']
             self.fit()
         except Exception as err:
             item = formatted_log("Argument data error", None, str(err))
@@ -721,6 +783,7 @@ class UniformOptimizer:
             json_data['target']=self.data.means.to_dict()
             optimizer = GeneralizedOptimizer(json_data,self.log,check_target=False,npopul=self.npopul,epsilon=self.epsilon,threshold=self.threshold,tolerance=self.tolerance,
                                              allow_count=self.allow_count,mutate_cell=self.mutate_cell,mutate_random=self.mutate_random,cast_number=self.cast_number,njobs=self.njobs)
+            optimizer.modes=self.modes
             self.data.data = optimizer.optimize()
             self.niter+=1
         return self.data.data
