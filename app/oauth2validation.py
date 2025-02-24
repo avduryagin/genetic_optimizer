@@ -116,7 +116,8 @@ def jwt_token(request):
     if provider is None:
         abort(401)
     try:
-        token=request.headers['Authorization']
+        bearer=request.headers['Authorization']
+        token=bearer.split()[1]
         if token is None:
             raise KeyError
         options={"verify_exp": True,"verify_aud":True}
