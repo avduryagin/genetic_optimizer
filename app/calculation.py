@@ -17,9 +17,9 @@ class Optimizer(Resource):
         self.optimizer=None
 
     def post(self,*args,**kwargs):
-        #token,msg=jwt_token(request)
-        msg='Unauthorized'
-        token=True
+        token,msg=jwt_token(request)
+        #msg='Unauthorized'
+        #token=True
         if token:
             json_data=request.json
             res=[]
@@ -66,9 +66,9 @@ class UniformOptimizer(Resource):
         self.optimizer=None
 
     def post(self,*args,**kwargs):
-        #token,msg=jwt_token(request)
-        msg='Unauthorized'
-        token=True
+        token,msg=jwt_token(request)
+        #msg='Unauthorized'
+        #token=True
 
         if token:
             json_data=request.json

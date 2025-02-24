@@ -1,5 +1,6 @@
 import os
 import requests
+from urllib.parse import urljoin
 
 class Providers:
     def __init__(self):
@@ -32,7 +33,8 @@ def load_from_env():
         redirect_uri=""
         authority_connect=os.environ.get('Security__OpenIdConnect__Authority')
         if authority_connect is not None:
-            discovery=authority_connect+tag
+            #discovery=urljoin(authority_connect,tag)
+            discovery = urljoin(authority_connect, tag)
             well_known=requests.get(discovery).json()
             authorization_endpoint=well_known['authorization_endpoint']
             token_endpoint=well_known['token_endpoint']

@@ -16,8 +16,8 @@ try:
     jfile=wrapper.data_
     data=jfile["data"]
     kwargs=jfile["kwargs"]
-    optimizer=ev.GeneralizedOptimizer(data,log,**kwargs)
-    #optimizer=ev.UniformOptimizer(data,log,**kwargs)
+    #optimizer=ev.GeneralizedOptimizer(data,log,**kwargs)
+    optimizer=ev.UniformOptimizer(data,log,**kwargs)
 
     result=optimizer.optimize()
     validation = optimizer.validate(wrapper.target_group)
