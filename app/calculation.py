@@ -6,6 +6,7 @@ from app.calclib.py import event_optimizer as ev
 from app.logging_format import log_ as formatted_log
 from app.oauth2validation import jwt_token
 from app.decorators import add_headers
+from app.cef import cef_log
 
 #import json
 
@@ -17,10 +18,17 @@ class Optimizer(Resource):
         self.optimizer=None
 
     def post(self,*args,**kwargs):
-        token,msg=jwt_token(request)
-        #msg='Unauthorized'
+
+        cef_=cef_log()
+        cef_.fit_request(request)
+        tag=cef_.tag
+        token=cef_.jwt_validation
+        msg=cef_.decoded
         #token=True
         if token:
+            name="JWT token validation on {tag} ".format(tag=tag)
+            lmsg=cef_(success=True,msg=name)
+            app_flask.logger.info(lmsg)
             json_data=request.json
             res=[]
             log=[]
@@ -36,10 +44,14 @@ class Optimizer(Resource):
                 validation=self.optimizer.validate(wrapper.target_group)
                 res = [{"id": i, "assigned": int(result.at[i, 'assigned'])} for i in
                           result.index]
+                name="Calculation on {tag} ".format(tag=tag)
+                lmsg = cef_(success=True, msg=name)
+                app_flask.logger.info(lmsg)
                 #res = result.loc[:, 'assigned'].to_dict()
             except KeyError:
                 item=formatted_log("input json error",None,"Can't find fields data or kwargs")
                 log.append(item.get())
+
 
             except TypeError as err:
                 item=formatted_log("input json error",None,"Argument type error: {0}".format(err))
@@ -52,11 +64,19 @@ class Optimizer(Resource):
                 #log.extend(self.optimizer.log)
 
             finally:
+                if len(log)>0:
+                    name = "Calculation on {tag}.See log for details".format(tag=tag)
+                    lmsg = cef_(success=False, msg=name)
+                    app_flask.logger.info(lmsg)
+
                 return jsonify({"data": res, "log": log,"validation":validation})
 
 
 
         else:
+            name="JWT token validation on {tag} ".format(tag=tag)
+            lmsg=cef_(success=False,msg=name)
+            app_flask.logger.info(lmsg)
             return abort(401, description=msg)
 
 api.add_resource(Optimizer, "/optimizer/")
@@ -66,11 +86,15 @@ class UniformOptimizer(Resource):
         self.optimizer=None
 
     def post(self,*args,**kwargs):
-        token,msg=jwt_token(request)
-        #msg='Unauthorized'
-        #token=True
-
+        cef_=cef_log()
+        cef_.fit_request(request)
+        tag=cef_.tag
+        token=cef_.jwt_validation
+        msg=cef_.decoded
         if token:
+            name="JWT token validation on {tag} ".format(tag=tag)
+            lmsg=cef_(success=True,msg=name)
+            app_flask.logger.info(lmsg)
             json_data=request.json
             res=[]
             log=[]
@@ -81,13 +105,13 @@ class UniformOptimizer(Resource):
                 data = wrapper.data_['data']
                 kwargs = wrapper.data_['kwargs']
                 self.optimizer=ev.UniformOptimizer(data,log,**kwargs)
-                #log = self.optimizer.log[:]
-                #assert len(self.optimizer.log)==0,"Data initializing error"
+
                 result = self.optimizer.optimize()
                 res = [{"id": i, "assigned": int(result.at[i, 'assigned'])} for i in
                           result.index]
-
-
+                name="Calculation on {tag} ".format(tag=tag)
+                lmsg = cef_(success=True, msg=name)
+                app_flask.logger.info(lmsg)
             except KeyError:
                 item=formatted_log("input json error",None,"Can't find fields data or kwargs")
                 log.append(item.get())
@@ -100,13 +124,19 @@ class UniformOptimizer(Resource):
             except AssertionError as err:
                 item=formatted_log("Assertion error",None,str(err))
                 log.append(item.get())
-                #log.extend(wrapper.log)
-                #log.extend(self.optimizer.log)
+
 
             finally:
+                if len(log)>0:
+                    name = "Calculation on {tag}.See log for details".format(tag=tag)
+                    lmsg = cef_(success=False, msg=name)
+                    app_flask.logger.info(lmsg)
                 return jsonify({"data": res, "log": log,"validation":validation})
 
         else:
+            name = "JWT token validation on {tag} ".format(tag=tag)
+            lmsg = cef_(success=False, msg=name)
+            app_flask.logger.info(lmsg)
             return abort(401, description=msg)
 
 api.add_resource(UniformOptimizer, "/uniform_optimizer/")

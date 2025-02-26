@@ -16,3 +16,4 @@ def health():
 @app_flask.route('/token')
 def token():
     return jwt_token(request)
+

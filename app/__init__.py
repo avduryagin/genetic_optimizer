@@ -19,13 +19,14 @@ app_flask.config['SECRET_KEY']=app_flask.config['OAUTH2_PROVIDERS'][provider.pro
 
 
 console=logging.StreamHandler()
-formatter=Formatter(
-    '%(asctime)s %(levelname)s: %(message)s '
-    '[in %(pathname)s:%(lineno)d]'
+formatter=Formatter('%(message)s'
+    #'%(asctime)s %(levelname)s: %(message)s '
+    #'[in %(pathname)s:%(lineno)d]'
 )
 console.setFormatter(formatter)
 console.setLevel(logging.INFO)
 logging.getLogger("").addHandler(console)
+logging.root.setLevel("INFO")
 
 from app import routes
 #from app import oauth2validation
