@@ -1,7 +1,7 @@
 from app import app_flask
 from flask import request
 from app.oauth2validation import jwt_token
-from app.decorators import add_headers
+
 
 @app_flask.route('/')
 @app_flask.route('/index')

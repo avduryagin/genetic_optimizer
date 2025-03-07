@@ -1,4 +1,3 @@
-from flask import request
 import os
 import time
 from app.oauth2validation import jwt_token

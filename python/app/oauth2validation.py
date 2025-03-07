@@ -2,13 +2,14 @@ from jwt import InvalidSignatureError, ExpiredSignatureError
 from jwt import PyJWKClient
 import os
 from app import app_flask
-from flask import redirect,abort,request,url_for,flash,session, jsonify
+from flask import redirect,abort,request,url_for,flash,session
 from urllib.parse import urlencode
 import requests
 import secrets
-import functools
 import jwt
 from app import providers
+
+
 #@app_flask.route("/authorize")
 def oauth2_authorize(provider="OIS-HUB"):
     provider_data = app_flask.config['OAUTH2_PROVIDERS'].get(provider)
@@ -146,7 +147,7 @@ def load_provider(provider_id):
     try:
         provider=app_flask.config['OAUTH2_PROVIDERS'][provider_id]
     except KeyError:
-        provider=providers.load_from_env()
+        provider= providers.load_from_env()
     return provider
 
 

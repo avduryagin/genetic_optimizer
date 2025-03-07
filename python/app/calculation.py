@@ -1,11 +1,8 @@
 from flask import request,abort,jsonify
 from app import app_flask
-import numpy as np
 from flask_restful import Api, Resource
 from app.calclib.py import event_optimizer as ev
 from app.logging_format import log_ as formatted_log
-from app.oauth2validation import jwt_token
-from app.decorators import add_headers
 from app.cef import cef_log
 
 #import json
@@ -91,6 +88,7 @@ class UniformOptimizer(Resource):
         tag=cef_.tag
         token=cef_.jwt_validation
         msg=cef_.decoded
+        #token=True
         if token:
             name="JWT token validation on {tag} ".format(tag=tag)
             lmsg=cef_(success=True,msg=name)

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="c80fa372-2364-4fdd-a696-9389ecdbf6ed" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/python/app/calclib/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/python/app/calclib/cpp/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/python/app/calclib/logs/PyServicesApp.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.dockerignore" beforeDir="false" afterPath="$PROJECT_DIR$/python/.dockerignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/python/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.pipelines/ois-pipe-geneticoptimizer-CI" beforeDir="false" afterPath="$PROJECT_DIR$/python/.pipelines/ois-pipe-geneticoptimizer-CI" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/launch.json" beforeDir="false" afterPath="$PROJECT_DIR$/python/.vscode/launch.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/python/.vscode/settings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/python/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PyServices.code-workspace" beforeDir="false" afterPath="$PROJECT_DIR$/python/PyServices.code-workspace" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/cpp/bind.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/cpp/bind.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/cpp/bind.h" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/cpp/bind.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/cpp/generalized_optimizer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/cpp/generalized_optimizer.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/cpp/generalized_optimizer.h" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/cpp/generalized_optimizer.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/cpp/genetic_optimizer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/cpp/genetic_optimizer.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/cpp/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/cpp/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/cpp/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/cpp/main.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/cpp/pymodule.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/cpp/pymodule.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/cpp/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/cpp/setup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/logs/PyServicesApp.log" beforeDir="false" afterPath="$PROJECT_DIR$/python/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/py/GeneticOptimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/py/GeneticOptimizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/py/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/py/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/py/cpp_optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/py/cpp_optimizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/py/event_optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/py/event_optimizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/py/py_optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/py/py_optimizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calclib/py/test2.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calclib/py/test2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/calculation.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/calculation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/cef.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/cef.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/decorators.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/decorators.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/flask_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/flask_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/logging_format.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/logging_format.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/oauth2validation.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/oauth2validation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/providers.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/providers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/app/routes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/default.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/python/config/default.cfg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/production_environment.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/python/config/production_environment.cfg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/python/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/python/readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/python/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements/common.txt" beforeDir="false" afterPath="$PROJECT_DIR$/python/requirements/common.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements/dev.txt" beforeDir="false" afterPath="$PROJECT_DIR$/python/requirements/dev.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements/prd.txt" beforeDir="false" afterPath="$PROJECT_DIR$/python/requirements/prd.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/python/server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web.config" beforeDir="false" afterPath="$PROJECT_DIR$/python/web.config" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="2ohGFX6UD9PbkRM9K13x7oqUDav" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.event_optimizer.executor": "Debug",
+    "Python.test2.executor": "Debug",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/home/ois.ru/avduryagin/PycharmProjects/ois-pipe-geneticoptimizer/python",
+    "settings.editor.selected.configurable": "com.intellij.pycharm.community.ide.impl.configuration.PythonContentEntriesConfigurable"
+  }
+}]]></component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings module-name="genetic_optimizer" is-module-sdk="true">
+        <option name="myUseModuleSdk" value="true" />
+        <option name="myModuleName" value="genetic_optimizer" />
+      </console-settings>
+    </option>
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/app" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/python" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-1b1018131e27-aa17d162503b-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-243.22562.180" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c80fa372-2364-4fdd-a696-9389ecdbf6ed" name="Changes" comment="" />
+      <created>1731314290893</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1731314290893</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="Dockerfile" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/python/app/calclib/py/test2.py</url>
+          <line>28</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/python/app/calclib/py/test2.py</url>
+          <line>19</line>
+          <option name="timeStamp" value="21" />
+        </line-breakpoint>
+      </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
